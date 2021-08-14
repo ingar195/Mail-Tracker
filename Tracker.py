@@ -164,6 +164,10 @@ connection = sqlite3.connect(DBFile)
 cursor = connection.cursor()
 InitDB()
 
-
+#AppendDB("idar", "posten", "370702053054431059", "")
+#Update("373325383101641046", "asdsa")
+#SearchAndCheck("373325383101641046", True)
+# Delete("373325383101641046")
+#Postnord("0037073025339724470a2")
 
 SearchAndCheck("asdasdasd", True)
