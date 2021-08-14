@@ -2,6 +2,7 @@ import requests
 from pushbullet import Pushbullet
 import sqlite3
 import logging
+import time
 
 
 def SqlCommand(sql_command):
@@ -33,7 +34,7 @@ def InitDB():
 def AppendDB(Name, Provider, TrackingNumber, CurrentState):
     logging.debug("AppendDB")
     serachReturn = SearchAndCheck(TrackingNumber, False)
-    if  TrackingNumber !=  serachReturn[3]:
+    if TrackingNumber != serachReturn[3]:
         SqlCommand("""INSERT INTO Mail 
         (itemnumber, Name, Provider, 
         TrackingNumber, CurrentState) 
@@ -44,7 +45,8 @@ def AppendDB(Name, Provider, TrackingNumber, CurrentState):
 
 def Update(TrackingNumber, CurrentState):
     logging.debug("update")
-    SqlCommand("UPDATE Mail SET CurrentState = '{}' WHERE TrackingNumber = '{}';".format(CurrentState, TrackingNumber))
+    SqlCommand("UPDATE Mail SET CurrentState = '{}' WHERE TrackingNumber = '{}';".format(
+        CurrentState, TrackingNumber))
 
 
 def SearchAndCheck(query, check):
@@ -69,14 +71,15 @@ def SearchAndCheck(query, check):
             logging.debug("Check = {}".format(check))
             Trace(Name, Provider, TrackingNumber, CurrentState)
         if TrackingNumber == query:
-            logging.debug(  f"Itemnumber: {itemnumber}, Name: {Name}, Provider: {Provider}, Tracking number: {TrackingNumber}, Current state: {CurrentState}")
+            logging.debug(f"Itemnumber: {itemnumber}, Name: {Name}, Provider: {Provider}, Tracking number: {TrackingNumber}, Current state: {CurrentState}")
     logging.debug("Search return = {}".format(row))
     return row
 
 
 def Trace(Name, Provider, TrackingNumber, CurrentState):
     logging.debug("Trace")
-    logging.debug(f"Name {Name}, Provider {Provider}, TrackingNumber {TrackingNumber}, CurrentState {CurrentState}")
+    logging.debug(
+        f"Name {Name}, Provider {Provider}, TrackingNumber {TrackingNumber}, CurrentState {CurrentState}")
 
     if Provider.lower() == "posten":
         logging.debug(f"Provider = {Provider}")
@@ -131,7 +134,7 @@ def Postnord(trackingNumber):
     logging.debug("Postnord")
     postnordAPIKey = ReadFile("postnordapikey")
     data = GetData(
-        f"https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json?apikey={postnordAPIKey}&id={trackingNumber}&locale=no")   
+        f"https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json?apikey={postnordAPIKey}&id={trackingNumber}&locale=no")
     try:
         header = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["header"]
         body = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["body"]
@@ -153,8 +156,10 @@ def ReadFile(fileName):
 def Notify(Name, CurrentState):
     pb.push_note(Name, CurrentState)
 
+
 def Menu():
     pass
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -163,11 +168,6 @@ DBFile = "Mail.db"
 connection = sqlite3.connect(DBFile)
 cursor = connection.cursor()
 InitDB()
-
-#AppendDB("idar", "posten", "370702053054431059", "")
-#Update("373325383101641046", "asdsa")
-#SearchAndCheck("373325383101641046", True)
-# Delete("373325383101641046")
-#Postnord("0037073025339724470a2")
-
-SearchAndCheck("asdasdasd", True)
+while True:
+    SearchAndCheck("", True)
+    time.sleep(5*60)
