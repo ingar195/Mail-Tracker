@@ -138,7 +138,12 @@ def Postnord(trackingNumber):
     try:
         header = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["header"]
         body = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["body"]
-        combined = header + ", " + body
+        try:
+            eta = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["estimatedTimeOfArrival"]
+        except:
+            eta = ""
+            
+        combined = header + ", " + body + ", " + eta
         print(combined)
         return combined
     except:
