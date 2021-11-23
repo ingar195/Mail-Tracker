@@ -22,7 +22,6 @@ def Posten(trackingNumber):
     data = GetData(f"https://sporing.posten.no/tracking/api/fetch/{trackingNumber}")
     try:
         currentEvent = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]["description"]
-        print(currentEvent)
         eta = "Not supported with posten"
         return currentEvent, eta
     except:
@@ -73,6 +72,8 @@ def CheckStatus(currentState, package, trackingData):
         checkedEta = trackingData[1]
         lastUpdate = currentState[package]["LastUpdate"]
         eta = currentState[package]["ETA"]
+        
+        logging.info(f"{package}: last state: {checkedState}")
 
         if eta != checkedEta:
             Notify(package, f"ETA changed form {eta} to {checkedEta}")
@@ -111,7 +112,7 @@ def Notify(Name, CurrentState):
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%d-%m-%Y:%H:%M:%S',
-    level=logging.DEBUG,
+    level=logging.INFO,
     handlers=[
         logging.FileHandler("Tracker.log"),
         logging.StreamHandler()
