@@ -1,7 +1,7 @@
 import requests
 from pushbullet import Pushbullet
 import logging
-import time
+import json
 
 
 def GetData(url):
@@ -53,6 +53,17 @@ def ReadFile(fileName):
         fileLines = f.readline()
     logging.debug(f"Return: {fileLines}")
     return fileLines
+
+
+def readConfig(jsonFile):
+    logging.debug("readConfig()")
+    with open(jsonFile, "r") as jf:
+        return json.load(jf)
+
+
+def writeconfig(jsonFile, data):
+    with open(jsonFile, "w+") as f:
+        f.write(json.dumps(data, indent=4, sort_keys=True))
 
 
 def Notify(Name, CurrentState):
