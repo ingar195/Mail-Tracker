@@ -22,7 +22,7 @@ def Posten(trackingNumber):
     data = GetData(f"https://sporing.posten.no/tracking/api/fetch/{trackingNumber}")
     try:
         currentEvent = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]["description"]
-        eta = "Not supported with posten"
+        eta = ""
         return currentEvent, eta
     except:
         return "Tracking id invalid"
