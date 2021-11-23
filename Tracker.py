@@ -23,7 +23,8 @@ def Posten(trackingNumber):
     try:
         currentEvent = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]["description"]
         print(currentEvent)
-        return currentEvent
+        eta = "Not supported with posten"
+        return currentEvent, eta
     except:
         return "Tracking id invalid"
 
@@ -41,9 +42,9 @@ def Postnord(trackingNumber):
         except:
             eta = ""
 
-        combined = header + ", " + body + ", " + eta
+        combined = header + ", " + body
         print(combined)
-        return combined
+        return combined, eta
     except:
         return "Tracking id invalid"
 
@@ -65,8 +66,22 @@ def track(jsonFile):
             logging.error(f"{transporter} not supported")
 
 
-def CheckStatus():
-    pass
+def CheckStatus(currentState, package, trackingData):
+    logging.debug(f"CheckStatus({currentState}, {package}, {trackingData}):")
+
+    if trackingData != "Tracking id invalid":
+        checkedState = trackingData[0]
+        checkedEta = trackingData[1]
+        state = currentState[package]["ETA"]
+        eta = currentState[package]["ETA"]
+
+        if eta != checkedEta:
+            Notify(package, f"ETA changed form {eta} to {checkedEta}")
+        if state != checkedState:
+            Notify(package, f"State changed form {state} to {checkedState}")
+    else:
+        logging.error("No data from provider")
+
 
 def ReadFile(fileName):
     logging.debug("ReadFile")
