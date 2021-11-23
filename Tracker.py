@@ -4,12 +4,21 @@ import logging
 import time
 
 
+def GetData(url):
+    logging.debug("GetData")
+    try:
+        response = requests.get(url)
+        data = response.json()
+        return data
+
+    except Exception as e:
+        print("No connection to server {}".format(url))
+        return None
 
 
 def Posten(trackingNumber):
     logging.debug("Posten")
-    data = GetData(
-        f"https://sporing.posten.no/tracking/api/fetch/{trackingNumber}")
+    data = GetData(f"https://sporing.posten.no/tracking/api/fetch/{trackingNumber}")
     try:
         currentEvent = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]["description"]
         print(currentEvent)
