@@ -73,7 +73,3 @@ logging.basicConfig(
     ])
 
 pb = Pushbullet(ReadFile("pushbulletapikey"))
-
-
-while True:
-    time.sleep(5*60)
