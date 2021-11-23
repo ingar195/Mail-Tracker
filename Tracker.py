@@ -32,8 +32,7 @@ def Posten(trackingNumber):
 def Postnord(trackingNumber):
     logging.debug("Postnord")
     postnordAPIKey = ReadFile("postnordapikey")
-    data = GetData(
-        f"https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json?apikey={postnordAPIKey}&id={trackingNumber}&locale=no")
+    data = GetData(f"https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json?apikey={postnordAPIKey}&id={trackingNumber}&locale=no")
     try:
         header = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["header"]
         body = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["body"]
@@ -43,15 +42,15 @@ def Postnord(trackingNumber):
             eta = ""
 
         combined = header + ", " + body
-        print(combined)
+        logging.debug(combined)
         return combined, eta
     except:
         return "Tracking id invalid"
 
 
-def track(jsonFile):
-    logging.debug(f"track({jsonFile}):")
-    currentState = readConfig(jsonFile)
+def track():
+    logging.debug(f"track():")
+    currentState = readConfig()
 
     for package in currentState:
         logging.debug(package)
@@ -72,13 +71,16 @@ def CheckStatus(currentState, package, trackingData):
     if trackingData != "Tracking id invalid":
         checkedState = trackingData[0]
         checkedEta = trackingData[1]
-        state = currentState[package]["ETA"]
+        lastUpdate = currentState[package]["LastUpdate"]
         eta = currentState[package]["ETA"]
 
         if eta != checkedEta:
             Notify(package, f"ETA changed form {eta} to {checkedEta}")
-        if state != checkedState:
-            Notify(package, f"State changed form {state} to {checkedState}")
+            currentState[package]["ETA"] = checkedEta
+        if lastUpdate != checkedState:
+            Notify(package, f"Last update changed form {lastUpdate} to {checkedState}")
+            currentState[package]["LastUpdate"] = checkedState
+        writeconfig(currentState)
     else:
         logging.error("No data from provider")
 
@@ -91,13 +93,13 @@ def ReadFile(fileName):
     return fileLines
 
 
-def readConfig(jsonFile):
+def readConfig():
     logging.debug("readConfig()")
     with open(jsonFile, "r") as jf:
         return json.load(jf)
 
 
-def writeconfig(jsonFile, data):
+def writeconfig(data):
     with open(jsonFile, "w+") as f:
         f.write(json.dumps(data, indent=4, sort_keys=True))
 
@@ -113,12 +115,16 @@ def Menu():
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%d-%m-%Y:%H:%M:%S',
-    level=logging.INFO,
+    level=logging.DEBUG,
     handlers=[
         logging.FileHandler("Tracker.log"),
         logging.StreamHandler()
     ])
 
+
+jsonFile = "packages.json"
 pb = Pushbullet(ReadFile("pushbulletapikey"))
-print(os.path.isfile("packages.json"))
-track("packages.json")
+if os.path.isfile(jsonFile):
+    track()
+else:
+    logging.error(f"Could not find: {jsonFile}")
