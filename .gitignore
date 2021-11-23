@@ -1,10 +1,10 @@
 pushbulletapikey
 Monitor.py
 trackingnumbers
-Mail.db
 postnordapikey
 posten.json
 posten error.json
 postnord.json
 pn.json
 Tracker.log
+packages.json
