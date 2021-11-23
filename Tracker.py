@@ -76,7 +76,8 @@ def SearchAndCheck(query, check):
             logging.debug("Check = {}".format(check))
             Trace(Name, Provider, TrackingNumber, CurrentState)
         if TrackingNumber == query:
-            logging.debug(f"Itemnumber: {itemnumber}, Name: {Name}, Provider: {Provider}, Tracking number: {TrackingNumber}, Current state: {CurrentState}")
+            logging.debug(
+                f"Itemnumber: {itemnumber}, Name: {Name}, Provider: {Provider}, Tracking number: {TrackingNumber}, Current state: {CurrentState}")
     logging.debug("Search return = {}".format(row))
     return row
 
@@ -114,7 +115,7 @@ def Delete(TrackingNumber):
 def GetData(url):
     logging.debug("GetData")
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         data = response.json()
         return data
 
@@ -143,7 +144,12 @@ def Postnord(trackingNumber):
     try:
         header = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["header"]
         body = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["body"]
-        combined = header + ", " + body
+        try:
+            eta = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["estimatedTimeOfArrival"]
+        except:
+            eta = ""
+
+        combined = header + ", " + body + ", " + eta
         print(combined)
         return combined
     except:
