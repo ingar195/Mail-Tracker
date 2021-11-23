@@ -108,10 +108,6 @@ def Notify(Name, CurrentState):
     pb.push_note(Name, CurrentState)
 
 
-def Menu():
-    pass
-
-
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%d-%m-%Y:%H:%M:%S',
