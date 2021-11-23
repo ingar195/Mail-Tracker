@@ -34,14 +34,19 @@ def InitDB():
 def AppendDB(Name, Provider, TrackingNumber, CurrentState):
     logging.debug("AppendDB")
     serachReturn = SearchAndCheck(TrackingNumber, False)
-    if TrackingNumber != serachReturn[3]:
+    try:
+        if TrackingNumber != serachReturn[3]:
+            SqlCommand("""INSERT INTO Mail 
+            (itemnumber, Name, Provider, 
+            TrackingNumber, CurrentState) 
+            VALUES (null,"{}","{}","{}","{}");""".format(Name, Provider, TrackingNumber, CurrentState))
+        else:
+            logging.error(f"Tracking number {TrackingNumber} already in list")
+    except:
         SqlCommand("""INSERT INTO Mail 
-        (itemnumber, Name, Provider, 
-        TrackingNumber, CurrentState) 
-        VALUES (null,"{}","{}","{}","{}");""".format(Name, Provider, TrackingNumber, CurrentState))
-    else:
-        logging.error(f"Tracking number {TrackingNumber} already in list")
-
+            (itemnumber, Name, Provider, 
+            TrackingNumber, CurrentState) 
+            VALUES (null,"{}","{}","{}","{}");""".format(Name, Provider, TrackingNumber, CurrentState))
 
 def Update(TrackingNumber, CurrentState):
     logging.debug("update")
@@ -168,6 +173,7 @@ DBFile = "Mail.db"
 connection = sqlite3.connect(DBFile)
 cursor = connection.cursor()
 InitDB()
+
 while True:
     SearchAndCheck("", True)
     time.sleep(5*60)
