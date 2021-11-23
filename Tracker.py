@@ -2,6 +2,7 @@ import requests
 from pushbullet import Pushbullet
 import logging
 import json
+import os
 
 
 def GetData(url):
@@ -47,6 +48,26 @@ def Postnord(trackingNumber):
         return "Tracking id invalid"
 
 
+def track(jsonFile):
+    logging.debug(f"track({jsonFile}):")
+    currentState = readConfig(jsonFile)
+
+    for package in currentState:
+        logging.debug(package)
+        transporter = currentState[package]["Transporter"].lower()
+        trackingNumber = currentState[package]["TrackingNumber"]
+
+        if transporter == "posten":
+            CheckStatus(currentState, package, Posten(trackingNumber))
+        elif transporter == "postnord":
+            CheckStatus(currentState, package, Postnord(trackingNumber))
+        else:
+            logging.error(f"{transporter} not supported")
+
+
+def CheckStatus():
+    pass
+
 def ReadFile(fileName):
     logging.debug("ReadFile")
     with open(fileName) as f:
@@ -84,3 +105,5 @@ logging.basicConfig(
     ])
 
 pb = Pushbullet(ReadFile("pushbulletapikey"))
+print(os.path.isfile("packages.json"))
+track("packages.json")
