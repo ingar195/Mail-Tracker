@@ -99,18 +99,21 @@ def readConfig():
 
 
 def writeconfig(data):
+    logging.debug(f"writeconfig({data}):")
     with open(jsonFile, "w+") as f:
         f.write(json.dumps(data, indent=4, sort_keys=True))
 
 
 def Notify(Name, CurrentState):
+    logging.debug(f"Notify({Name}, {CurrentState}):")
+    logging.INFO(f"Allert {Name}: {CurrentState}")
     pb.push_note(Name, CurrentState)
 
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%d-%m-%Y:%H:%M:%S',
-    level=logging.DEBUG,
+    level=logging.INFO,
     handlers=[
         logging.FileHandler("Tracker.log"),
         logging.StreamHandler()
