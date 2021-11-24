@@ -34,15 +34,13 @@ def Postnord(trackingNumber):
     data = GetData(f"https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json?apikey={postnordAPIKey}&id={trackingNumber}&locale=no")
     try:
         header = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["header"]
-        body = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["body"]
         try:
             eta = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["estimatedTimeOfArrival"]
         except:
             eta = ""
 
-        combined = header + ", " + body
-        logging.debug(combined)
-        return combined, eta
+        logging.debug(header)
+        return header, eta
     except:
         return "Tracking id invalid"
 
@@ -65,7 +63,7 @@ def track():
 
 
 def CheckStatus(currentState, package, trackingData):
-    logging.debug(f"CheckStatus({currentState}, {package}, {trackingData}):")
+    logging.debug(f"CheckStatus(c{currentState}, p{package}, data{trackingData}):")
 
     if trackingData != "Tracking id invalid":
         checkedState = trackingData[0]
@@ -112,7 +110,7 @@ def Notify(Name, CurrentState):
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%d-%m-%Y:%H:%M:%S',
-    level=logging.INFO,
+    level=logging.DEBUG,
     handlers=[
         logging.FileHandler("Tracker.log"),
         logging.StreamHandler()
