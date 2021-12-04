@@ -106,14 +106,14 @@ def writeconfig(data):
 
 def Notify(Name, CurrentState):
     logging.debug(f"Notify({Name}, {CurrentState}):")
-    logging.INFO(f"Allert {Name}: {CurrentState}")
+    # logging.INFO(f"Allert {Name}: {CurrentState}")
     pb.push_note(Name, CurrentState)
 
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%d-%m-%Y:%H:%M:%S',
-    level=logging.INFO,
+    level=logging.DEBUG,
     handlers=[
         logging.FileHandler("Tracker.log"),
         logging.StreamHandler()
