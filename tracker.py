@@ -1,5 +1,6 @@
-import requests
 from pushbullet import Pushbullet
+import requests
+import argparse
 import logging
 import json
 import os
@@ -19,7 +20,7 @@ def get_data(url):
 
 def posten(tracking_number):
     logging.debug("Posten")
-    data = get_data(f"https://sporing.posten.no/tracking/api/fetch/{tracking_number}")
+    data = get_data(f"https://sporing.bring.no/tracking/api/fetch?query={tracking_number}&lang=no")
     try:
         current_event = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]["description"]
         eta = ""
@@ -99,30 +100,42 @@ def read_config():
 
 
 def write_config(data):
-    logging.debug(f"writeconfig({data}):")
+    logging.debug(f"write config({data}):")
     with open(json_file, "w+") as f:
         f.write(json.dumps(data, indent=4, sort_keys=True))
 
 
 def notify(name, current_state):
     logging.debug(f"Notify({name}, {current_state}):")
-    # logging.INFO(f"Allert {Name}: {CurrentState}")
+    # logging.INFO(f"Alert {Name}: {CurrentState}")
     pb.push_note(name, current_state)
 
 
-logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%d-%m-%Y:%H:%M:%S',
-    level=logging.DEBUG,
-    handlers=[
-        logging.FileHandler("Tracker.log"),
-        logging.StreamHandler()
-    ])
 
 
-json_file = "packages.json"
-pb = Pushbullet(read_file("pushbulletapikey"))
-if os.path.isfile(json_file):
-    track()
-else:
-    logging.error(f"Could not find: {json_file}")
+if __name__ == "__main__":
+
+
+    
+    argparse.ArgumentParser(description="Track packages")
+    argparse.add_argument("-c", "--config", help="config file", default="packages.json")
+    argparse.add_argument("-l", "--log", help="log file", default="Tracker.log")
+    args = argparse.parse_args()
+
+    log_file = args.log
+    json_file = args.config
+
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+        datefmt='%d-%m-%Y:%H:%M:%S',
+        level=logging.DEBUG,
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ])
+
+    pb = Pushbullet(read_file("pushbulletapikey"))
+    if os.path.isfile(json_file):
+        track()
+    else:
+        logging.error(f"Could not find: {json_file}")
