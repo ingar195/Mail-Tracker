@@ -5,8 +5,8 @@ import json
 import os
 
 
-def GetData(url):
-    logging.debug("GetData")
+def get_data(url):
+    logging.debug("get_data")
     try:
         response = requests.get(url)
         data = response.json()
@@ -17,21 +17,21 @@ def GetData(url):
         return None
 
 
-def Posten(trackingNumber):
+def posten(tracking_number):
     logging.debug("Posten")
-    data = GetData(f"https://sporing.posten.no/tracking/api/fetch/{trackingNumber}")
+    data = get_data(f"https://sporing.posten.no/tracking/api/fetch/{tracking_number}")
     try:
-        currentEvent = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]["description"]
+        current_event = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]["description"]
         eta = ""
-        return currentEvent, eta
+        return current_event, eta
     except:
         return "Tracking id invalid"
 
 
-def Postnord(trackingNumber):
-    logging.debug("Postnord")
-    postnordAPIKey = ReadFile("postnordapikey")
-    data = GetData(f"https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json?apikey={postnordAPIKey}&id={trackingNumber}&locale=no")
+def postnord(tracking_number):
+    logging.debug("postnord")
+    postnord_api_key = read_file("postnordapikey")
+    data = get_data(f"https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json?apikey={postnord_api_key}&id={tracking_number}&locale=no")
     try:
         header = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["header"]
         try:
@@ -47,67 +47,67 @@ def Postnord(trackingNumber):
 
 def track():
     logging.debug(f"track():")
-    currentState = readConfig()
+    current_state = read_config()
 
-    for package in currentState:
+    for package in current_state:
         logging.debug(package)
-        transporter = currentState[package]["Transporter"].lower()
-        trackingNumber = currentState[package]["TrackingNumber"]
+        transporter = current_state[package]["Transporter"].lower()
+        tracking_number = current_state[package]["TrackingNumber"]
 
         if transporter == "posten":
-            CheckStatus(currentState, package, Posten(trackingNumber))
+            check_status(current_state, package, posten(tracking_number))
         elif transporter == "postnord":
-            CheckStatus(currentState, package, Postnord(trackingNumber))
+            check_status(current_state, package, postnord(tracking_number))
         else:
             logging.error(f"{transporter} not supported")
 
 
-def CheckStatus(currentState, package, trackingData):
-    logging.debug(f"CheckStatus(c{currentState}, p{package}, data{trackingData}):")
+def check_status(current_state, package, tracking_data):
+    logging.debug(f"Check status(c{current_state}, p{package}, data{tracking_data}):")
 
-    if trackingData != "Tracking id invalid":
-        checkedState = trackingData[0]
-        checkedEta = trackingData[1]
-        lastUpdate = currentState[package]["LastUpdate"]
-        eta = currentState[package]["ETA"]
+    if tracking_data != "Tracking id invalid":
+        checked_state = tracking_data[0]
+        checked_eta = tracking_data[1]
+        last_update = current_state[package]["LastUpdate"]
+        eta = current_state[package]["ETA"]
         
-        logging.info(f"{package}: last state: {checkedState}")
+        logging.info(f"{package}: last state: {checked_state}")
 
-        if eta != checkedEta:
-            Notify(package, f"ETA changed form {eta} to {checkedEta}")
-            currentState[package]["ETA"] = checkedEta
-        if lastUpdate != checkedState:
-            Notify(package, f"Last update changed form {lastUpdate} to {checkedState}")
-            currentState[package]["LastUpdate"] = checkedState
-        writeconfig(currentState)
+        if eta != checked_eta:
+            notify(package, f"ETA changed form {eta} to {checked_eta}")
+            current_state[package]["ETA"] = checked_eta
+        if last_update != checked_state:
+            notify(package, f"Last update changed form {last_update} to {checked_state}")
+            current_state[package]["LastUpdate"] = checked_state
+        write_config(current_state)
     else:
         logging.error("No data from provider")
 
 
-def ReadFile(fileName):
+def read_file(file_name):
     logging.debug("ReadFile")
-    with open(fileName) as f:
-        fileLines = f.readline()
-    logging.debug(f"Return: {fileLines}")
-    return fileLines
+    with open(file_name) as f:
+        file_lines = f.readline()
+    logging.debug(f"Return: {file_lines}")
+    return file_lines
 
 
-def readConfig():
+def read_config():
     logging.debug("readConfig()")
-    with open(jsonFile, "r") as jf:
+    with open(json_file, "r") as jf:
         return json.load(jf)
 
 
-def writeconfig(data):
+def write_config(data):
     logging.debug(f"writeconfig({data}):")
-    with open(jsonFile, "w+") as f:
+    with open(json_file, "w+") as f:
         f.write(json.dumps(data, indent=4, sort_keys=True))
 
 
-def Notify(Name, CurrentState):
-    logging.debug(f"Notify({Name}, {CurrentState}):")
+def notify(name, current_state):
+    logging.debug(f"Notify({name}, {current_state}):")
     # logging.INFO(f"Allert {Name}: {CurrentState}")
-    pb.push_note(Name, CurrentState)
+    pb.push_note(name, current_state)
 
 
 logging.basicConfig(
@@ -120,9 +120,9 @@ logging.basicConfig(
     ])
 
 
-jsonFile = "packages.json"
-pb = Pushbullet(ReadFile("pushbulletapikey"))
-if os.path.isfile(jsonFile):
+json_file = "packages.json"
+pb = Pushbullet(read_file("pushbulletapikey"))
+if os.path.isfile(json_file):
     track()
 else:
-    logging.error(f"Could not find: {jsonFile}")
+    logging.error(f"Could not find: {json_file}")
