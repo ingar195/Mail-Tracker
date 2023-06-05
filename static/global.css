@@ -1,0 +1,47 @@
+:root { /* Totally not VSCode inspired colors */
+    --background-color: #00c5182b;
+    /* --foreground-color: #aaa9a9; */
+    --header-color: #181717;
+    --button-color: #0f0f0f;
+    --text-color: #0f0f0f;
+}  
+    
+body { /* Single-page-like behaviour */
+    margin-left: 100px;
+
+    background: var(--background-color);
+    color: var(--text-color);
+}
+.sidenav {
+    height: 100%; /* 100% Full-height */
+    width: auto; /* 0 width - change this with JavaScript */
+    max-width: 100px;
+    position: fixed; /* Stay in place */
+    top: 0; /* Stay at the top */
+    left: 0;
+    padding-top: 60px; /* Place content 60px from the top */
+    color: white;
+  }
+
+  a {
+    color: var(--text-color);
+  }
+ 
+  select { 
+    margin-left: 50%;
+    margin-right: 10%;
+    margin-top: -10%;
+    padding: 10px;
+    width: 200px;
+
+
+    border-radius: 5px;
+    border-style: none;
+
+    background-color: white;
+    color: blue;
+    outline: none;
+
+
+}
+select[multiple]::-webkit-scrollbar { display: none; }
