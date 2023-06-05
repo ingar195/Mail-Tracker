@@ -18,18 +18,40 @@ def get_data(url):
         return None
 
 
-def posten(tracking_number):
-    logging.debug("Posten")
-    data = get_data(f"https://sporing.bring.no/tracking/api/fetch?query={tracking_number}&lang=no")
+def posten(tracking_number="70730259304981356", lang="en"):
+    lang_list = ["en", "no"]
+    if lang not in lang_list:
+        logging.error(f"Language {lang} not supported, default to en")
+        lang = "en"
+
     try:
-        current_event = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]["description"]
-        eta = ""
-        return current_event, eta
-    except:
-        return "Tracking id invalid"
+        data = get_data(f"https://sporing.bring.no/tracking/api/fetch?query={tracking_number}&lang={lang}")
+
+        package_set = data["consignmentSet"][0]["packageSet"][0]
+        eta = package_set["dateOfEstimatedDelivery"]
+        sender = package_set["senderName"]
+
+        event = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]
+        status = event["status"]
+        last_event = event["description"]
+        date = event["displayDate"]
+        time = event["displayTime"]
+        logging.debug(eta)
+        logging.debug(sender)
+        logging.debug(status)
+        logging.debug(last_event)
+        logging.debug(date)
+        logging.debug(time)
+
+        return {"eta", eta, "status", status, "last_event", last_event, "date", date, "time", time}
+    except Exception as e:
+        logging.error(e)
+        return False
+
 
 
 def postnord(tracking_number):
+    return
     logging.debug("postnord")
     postnord_api_key = read_file("postnordapikey")
     data = get_data(f"https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json?apikey={postnord_api_key}&id={tracking_number}&locale=no")
@@ -43,24 +65,44 @@ def postnord(tracking_number):
         logging.debug(header)
         return header, eta
     except:
-        return "Tracking id invalid"
+        return False
 
 
-def track():
-    logging.debug(f"track():")
-    current_state = read_config()
+def get_provider(tracking_number):
+    function_list = [posten, postnord]
+    for function in function_list:
+        ret = function(tracking_number)
+        if ret:
+            return function.__name__
+    logging.error("No provider found")
 
-    for package in current_state:
-        logging.debug(package)
-        transporter = current_state[package]["Transporter"].lower()
-        tracking_number = current_state[package]["TrackingNumber"]
 
-        if transporter == "posten":
-            check_status(current_state, package, posten(tracking_number))
-        elif transporter == "postnord":
-            check_status(current_state, package, postnord(tracking_number))
+def track(parcel_file, config_file):
+
+    packages = read_config(parcel_file)
+    
+    for package in packages:
+
+        tracking_number = packages[package]["tracking_number"]
+        logging.debug(tracking_number)
+
+        if packages[package].get("carrier"):
+            carrier = packages[package]["carrier"]
+            logging.debug(carrier)
         else:
-            logging.error(f"{transporter} not supported")
+            carrier = get_provider(tracking_number)
+            if carrier:
+                packages[package]["carrier"] = carrier
+                write_config(packages, parcel_file)
+            logging.debug(carrier)
+            input("Press enter to continue")
+
+        if carrier == "posten":
+            tracking_data = posten(tracking_number)
+
+        elif carrier == "postnord":
+            tracking_data = postnord(tracking_number)
+        logging.debug(tracking_data)
 
 
 def check_status(current_state, package, tracking_data):
@@ -93,16 +135,18 @@ def read_file(file_name):
     return file_lines
 
 
-def read_config():
+def read_config(file_name):
     logging.debug("readConfig()")
-    with open(json_file, "r") as jf:
-        return json.load(jf)
+    with open(file_name, "r") as jf:
+        data = json.load(jf)
+    # logging.debug(f"Return: {data}")
+    return data
 
 
-def write_config(data):
+def write_config(data, json_file):
     logging.debug(f"write config({data}):")
     with open(json_file, "w+") as f:
-        f.write(json.dumps(data, indent=4, sort_keys=True))
+        f.write(json.dumps(data, indent=4))
 
 
 def notify(name, current_state):
@@ -117,13 +161,16 @@ if __name__ == "__main__":
 
 
     
-    argparse.ArgumentParser(description="Track packages")
-    argparse.add_argument("-c", "--config", help="config file", default="packages.json")
-    argparse.add_argument("-l", "--log", help="log file", default="Tracker.log")
-    args = argparse.parse_args()
+    parser = argparse.ArgumentParser(description="Track packages")
+    parser.add_argument("-c", "--config", help="config file", default="config.json", required=False)
+    parser.add_argument("-p", "--parcel", help="parcel file", default="packages.json", required=False)
+    parser.add_argument("-l", "--log", help="log file", default="Tracker.log", required=False)
+    args = parser.parse_args()
 
     log_file = args.log
-    json_file = args.config
+    parcel_file = args.parcel
+    config_file = args.config
+
 
     logging.basicConfig(
         format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -134,8 +181,7 @@ if __name__ == "__main__":
             logging.StreamHandler()
         ])
 
-    pb = Pushbullet(read_file("pushbulletapikey"))
-    if os.path.isfile(json_file):
-        track()
-    else:
-        logging.error(f"Could not find: {json_file}")
+    # pb = Pushbullet(read_file("pushbulletapikey"))
+    
+    track(parcel_file, config_file)
+
