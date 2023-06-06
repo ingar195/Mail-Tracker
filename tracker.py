@@ -159,10 +159,8 @@ def notify(name, current_state):
 def get_all_parcels():
     logging.debug("get_all_parcels()")
     parcels = read_config("packages.json")
-    parcel_list = []
-    for parcel in parcels:
-        parcel_list.append(parcel)
-    return parcel_list
+    logging.debug(parcels)
+    return parcels
 
 
 app = Flask(__name__)
@@ -175,22 +173,6 @@ def api_track(tracking_number):
 def parcels_filter(filter_var):
     if filter_var == "all":
         ret = get_all_parcels()
-        ret = {
-            "Zalando": {
-                "tracking_number": "1234567890",
-                "carrier": "posten",
-                "ETA": "2020-01-02",
-                "shipment_state": "In transit",
-                "last_update": "2020-01-02"
-            },
-            "DHL": {
-                "tracking_number": "asdfi",
-                "carrier": "DHL",
-                "ETA": "2020-01-0",
-                "shipment_state": "In transit",
-                "last_update": "2020-01-01"
-            },
-        }
         
     return jsonify(ret)
 
@@ -198,8 +180,13 @@ def parcels_filter(filter_var):
 def carrier():
     return jsonify(["posten"])
 
-@app.route('/api/add', methods=['POST'])
-def add():
+@app.route('/api/add/<name>', methods=['POST'])
+def add(name):
+    data = request.get_json()
+    parcels = get_all_parcels()
+
+    logging.debug(data)
+
     return jsonify(True)
 
 

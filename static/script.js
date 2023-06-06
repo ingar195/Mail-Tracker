@@ -8,8 +8,19 @@ function addPackage() {
     // Get the form data
     const trackingNumber = (document.getElementById('trackingNumber')).value;
     const carrier = (document.getElementById('carrierDropDown')).value;
-    console.log('Adding package:', trackingNumber, carrier);
-    updateCarrierList()
+    const parcelName = (document.getElementById('parcelName')).value;
+    console.log('Adding package: ',parcelName, trackingNumber, carrier);
+    endpoint = `http://127.0.0.1:1234/api/add/${parcelName}`
+    fetch(endpoint, {
+        method: "POST",
+        headers: new Headers({ "content-type": "application/json" }),
+        body: JSON.stringify({
+            carrier: carrier,
+            tracking_number: trackingNumber
+        })
+    })
+
+    // getParcels()
 }
 
 function getParcels() {
@@ -19,7 +30,7 @@ function getParcels() {
         .then(data => {
             console.log('Packages data:', data);
             const tableBody = document.getElementById('packagesTableBody');
-
+            tableBody.replaceChildren();
             // Iterate over the packages data and generate table rows
             for (const [name, packageData] of Object.entries(data)) {
                 const row = document.createElement('tr');
