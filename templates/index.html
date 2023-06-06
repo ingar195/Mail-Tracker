@@ -1,67 +1,91 @@
-<html>
-    <head>
-        <title>Mail Tracker</title>
-        <link rel="stylesheet" type="text/css" href="../static/global.css">
-        <script src="../static/script.js"></script>
-    </head>
+<head>
+  <title>Mail Tracker</title>
+  <link rel="stylesheet" type="text/css" href="../static/global.css">
+  <script src="../static/script.js"></script>
+</head>
 
-    <div id="mySidenav" class="sidenav">
-        <a href="#">To be sent</a>
-        <a href="#">Under transport</a>
-        <a href="#">Delivered</a>
-    </div>
+<body>
+  <table id="new">
+    <tr>
+      <th>Tracking number</th>
+      <th>Carrier</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td><input type="text" id="trackingNumber"></td>
+      <td>
+        <select name="carrier" id="carrierDropDown"  >
+          <!-- This should come from backend -->
+          <option value="dh">DHL</option>
+          <option value="Posten">Posten</option>
+          <option value="PostNord">PostNord</option>
+        </select>
+      
+      </td>
+      <td>
+        <button class="button-cell" id="add">Add</button>
+      </td>
+    </tr>
+  </table>
 
-    <body>
-        <h1>Banner</h1>
-        <p>Content goes here</p>
-    </body>
+  <table id="packagesTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Tracking number</th>
+        <th>Current location</th>
+        <th>Provider</th>
+        <th>Eta</th>
+        <th>Confirm</th>
+      </tr>
+    </thead>
+    <tbody id="packagesTableBody"></tbody>
+  </table>
+</body>
+<script>
+  // Fetch data from the API
+  fetch('http://127.0.0.1:1234/api/parcels/all')
+    .then(response => response.json())
     
-    <div>
-        <select name=”Parcels” id="packageList" multiple>
-            <!-- <option value="">PC</option>
-            <option value="">Screen</option>
-            <option value="">Shoes</option>
-            <option value="">Zalando</option> -->
-        </select>
-    </div>
-    <div>
-        <select name=”State id="packageState" multiple>
-            <!-- <option value="">PC</option>
-            <option value="">Screen</option>
-            <option value="">Shoes</option>
-            <option value="">Zalando</option> -->
-        </select>
-    </div>
+    .then(data => {
+      console.log('Packages data:', data);
+      const tableBody = document.getElementById('packagesTableBody');
 
-    <div>
-        <table>
-            <thead>
-              <tr>
-                <th>Header</th>
-                <th>Name</th>
-                <th>Eta</th>
-                <th>Current location</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Line 1</td>
-                <td>Zalando</td>
-                <td>10.02.2023</td>
-                <td>Under transport</td>
-                <td class="button-cell"><button>Button 1</button></td>
-              </tr>
-              <tr>
-                <td>Line 2</td>
-                <td>DHL</td>
-                <td>2.2.2023</td>
-                <td>Customs</td>
-                <td class="button-cell"><button>Button 2</button></td>
-              </tr>
-            </tbody>
-          </table>
-    </div>
+      // Iterate over the packages data and generate table rows
+      for (const [name, packageData] of Object.entries(data)) {
+        const row = document.createElement('tr');
 
+        const nameCell = document.createElement('td');
+        nameCell.textContent = name;
+        row.appendChild(nameCell);
 
-</html>
+        const trackingNumberCell = document.createElement('td');
+        trackingNumberCell.textContent = packageData.tracking_number;
+        row.appendChild(trackingNumberCell);
+
+        const carrierCell = document.createElement('td');
+        carrierCell.textContent = packageData.carrier;
+        row.appendChild(carrierCell);
+
+        const etaCell = document.createElement('td');
+        etaCell.textContent = packageData.ETA;
+        row.appendChild(etaCell);
+
+        const shipmentStateCell = document.createElement('td');
+        shipmentStateCell.textContent = packageData.shipment_state;
+        row.appendChild(shipmentStateCell);
+
+        const actionCell = document.createElement('td');
+        const button = document.createElement('button');
+        button.textContent = 'Confirm';
+        actionCell.classList.add('button-cell');
+        actionCell.appendChild(button);
+        row.appendChild(actionCell);
+
+        tableBody.appendChild(row);
+      }
+    })
+    .catch(error => {
+      console.log('Error fetching packages:', error);
+    });
+</script>
