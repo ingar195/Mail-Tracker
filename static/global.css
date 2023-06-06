@@ -1,47 +1,67 @@
-:root { /* Totally not VSCode inspired colors */
-    --background-color: #00c5182b;
-    /* --foreground-color: #aaa9a9; */
-    --header-color: #181717;
-    --button-color: #0f0f0f;
-    --text-color: #0f0f0f;
+:root {
+  --background-color: #1E1E1E;
+  --foreground-color: #333333;
+  --header-color: #ddd;
+  --button-color: #0E639C;
 }  
     
-body { /* Single-page-like behaviour */
-    margin-left: 100px;
-
+body { 
     background: var(--background-color);
     color: var(--text-color);
 }
-.sidenav {
-    height: 100%; /* 100% Full-height */
-    width: auto; /* 0 width - change this with JavaScript */
-    max-width: 100px;
-    position: fixed; /* Stay in place */
-    top: 0; /* Stay at the top */
-    left: 0;
-    padding-top: 60px; /* Place content 60px from the top */
-    color: white;
-  }
 
-  a {
-    color: var(--text-color);
-  }
- 
-  select { 
-    margin-left: 50%;
-    margin-right: 10%;
-    margin-top: -10%;
-    padding: 10px;
-    width: 200px;
-
-
-    border-radius: 5px;
-    border-style: none;
-
-    background-color: white;
-    color: blue;
-    outline: none;
-
-
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 500px;
+  margin-top : 10px;
+  margin-bottom : 10px;
 }
-select[multiple]::-webkit-scrollbar { display: none; }
+
+th, td {
+  padding: 8px;
+  text-align: left;
+}
+
+/* Table */
+th {
+  background-color: #555555;
+  color: #fff;
+}
+
+/* Table content even*/
+tr:nth-child(even) {
+  background-color: #555555;
+}
+
+button {
+  background-color: #4CAF50;
+  cursor: pointer;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  padding: 10px 10px;
+  width: 100%; /* Set the button width to 100% */
+}
+
+input[type="text"],
+select {
+  background-color: #585858;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+input{
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+}
+
+
+
+

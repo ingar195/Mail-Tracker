@@ -8,9 +8,9 @@ function updateSelectList() {
     // Get the selected value
     selected = document.getElementById("packageList").value
     // Get the new content
-    fetch("/api/" + selected)
+    fetch("/api/parcels/" + "all")
         .then(response => response.json())
-        .then(data => setSelectContent("select", data))
+        .then(data => setSelectContent("packageList", data))
 }
 
 

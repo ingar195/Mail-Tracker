@@ -1,3 +1,4 @@
+from flask import Flask, request, jsonify, render_template
 from pushbullet import Pushbullet
 import requests
 import argparse
@@ -155,21 +156,67 @@ def notify(name, current_state):
     pb.push_note(name, current_state)
 
 
+def get_all_parcels():
+    logging.debug("get_all_parcels()")
+    parcels = read_config("packages.json")
+    parcel_list = []
+    for parcel in parcels:
+        parcel_list.append(parcel)
+    return parcel_list
+
+
+app = Flask(__name__)
+@app.route('/api/tracking/<tracking_number>', methods=['GET', 'POST'])
+def api_track(tracking_number):
+    return jsonify(["a", "b", "c"])
+
+
+@app.route('/api/parcels/<filter_var>', methods=['GET', 'POST'])
+def parcels_filter(filter_var):
+    if filter_var == "all":
+        ret = get_all_parcels()
+        ret = {
+            "Zalando": {
+                "tracking_number": "1234567890",
+                "carrier": "posten",
+                "ETA": "2020-01-02",
+                "shipment_state": "In transit",
+                "last_update": "2020-01-02"
+            },
+            "DHL": {
+                "tracking_number": "asdfi",
+                "carrier": "DHL",
+                "ETA": "2020-01-0",
+                "shipment_state": "In transit",
+                "last_update": "2020-01-01"
+            },
+        }
+        
+    return jsonify(ret)
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/test')
+def pages():
+    return render_template('test.html')
 
 
 if __name__ == "__main__":
-
-
     
     parser = argparse.ArgumentParser(description="Track packages")
     parser.add_argument("-c", "--config", help="config file", default="config.json", required=False)
-    parser.add_argument("-p", "--parcel", help="parcel file", default="packages.json", required=False)
+    parser.add_argument("-pa", "--parcel", help="parcel file", default="packages.json", required=False)
     parser.add_argument("-l", "--log", help="log file", default="Tracker.log", required=False)
+    parser.add_argument("-p", "--port", help="port", default="1234", required=False)
     args = parser.parse_args()
 
     log_file = args.log
     parcel_file = args.parcel
     config_file = args.config
+    web_port = args.port
 
 
     logging.basicConfig(
@@ -182,6 +229,11 @@ if __name__ == "__main__":
         ])
 
     # pb = Pushbullet(read_file("pushbulletapikey"))
+    app.run(host='0.0.0.0', port=web_port, debug=True)
     
-    track(parcel_file, config_file)
+    # track(parcel_file, config_file)
+
+
+
+
 

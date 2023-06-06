@@ -1,0 +1,16 @@
+{
+    "Zalando": {
+        "tracking_number": "1234567890",
+        "carrier": "posten",
+        "ETA": "2020-01-02",
+        "shipment_state": "In transit",
+        "last_update": "2020-01-02"
+    },
+    "DHL": {
+        "tracking_number": "asdfi",
+        "carrier": "DHL",
+        "ETA": "2020-01-0",
+        "shipment_state": "In transit",
+        "last_update": "2020-01-01"
+    },
+}
