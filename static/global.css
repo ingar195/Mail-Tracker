@@ -31,7 +31,7 @@ th, td {
 /* Table */
 th {
   background-color: #555555;
-  color: var(--text-color);
+  color: #fff;
 }
 
 /* Table content even*/
@@ -51,6 +51,7 @@ button {
 
 input[type="text"],
 select {
+  text-transform: capitalize;
   background-color: #585858;
   padding: 8px;
   border-radius: 4px;

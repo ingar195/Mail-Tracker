@@ -1,18 +1,70 @@
 console.log("script.js loaded")
 
 //function run the update function when the page loads
-window.onload = updateSelectList
+window.onload = getParcels()
+window.onload = updateCarrierList
 
-// function to update the select list
-function updateSelectList() {
-    // Get the selected value
-    selected = document.getElementById("packageList").value
-    // Get the new content
-    fetch("/api/parcels/" + "all")
-        .then(response => response.json())
-        .then(data => setSelectContent("packageList", data))
+function addPackage() {
+    // Get the form data
+    const trackingNumber = (document.getElementById('trackingNumber')).value;
+    const carrier = (document.getElementById('carrierDropDown')).value;
+    console.log('Adding package:', trackingNumber, carrier);
+    updateCarrierList()
 }
 
+function getParcels() {
+    console.log('Fetching packages...');
+    fetch('http://127.0.0.1:1234/api/parcels/all')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Packages data:', data);
+            const tableBody = document.getElementById('packagesTableBody');
+
+            // Iterate over the packages data and generate table rows
+            for (const [name, packageData] of Object.entries(data)) {
+                const row = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = name;
+                row.appendChild(nameCell);
+
+                const trackingNumberCell = document.createElement('td');
+                trackingNumberCell.textContent = packageData.tracking_number;
+                row.appendChild(trackingNumberCell);
+
+                const carrierCell = document.createElement('td');
+                carrierCell.textContent = packageData.carrier;
+                row.appendChild(carrierCell);
+
+                const etaCell = document.createElement('td');
+                etaCell.textContent = packageData.ETA;
+                row.appendChild(etaCell);
+
+                const shipmentStateCell = document.createElement('td');
+                shipmentStateCell.textContent = packageData.shipment_state;
+                row.appendChild(shipmentStateCell);
+
+                const actionCell = document.createElement('td');
+                const button = document.createElement('button');
+                button.textContent = 'Confirm';
+                actionCell.classList.add('button-cell');
+                actionCell.appendChild(button);
+                row.appendChild(actionCell);
+
+                tableBody.appendChild(row);
+            }
+        });
+}
+
+
+function updateCarrierList() {
+    // Get the selected value
+    selected = document.getElementById("carrierDropDown").value
+    // Get the new content
+    fetch("/api/carrier")
+        .then(response => response.json())
+        .then(data => setSelectContent("carrierDropDown", data))
+}
 
 // Populate select list with stuff
 function setSelectContent(selectID, content) {
