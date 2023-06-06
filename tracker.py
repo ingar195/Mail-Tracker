@@ -166,12 +166,12 @@ def get_all_parcels():
 
 
 app = Flask(__name__)
-@app.route('/api/tracking/<tracking_number>', methods=['GET', 'POST'])
+@app.route('/api/tracking/<tracking_number>', methods=['GET'])
 def api_track(tracking_number):
     return jsonify(["a", "b", "c"])
 
 
-@app.route('/api/parcels/<filter_var>', methods=['GET', 'POST'])
+@app.route('/api/parcels/<filter_var>', methods=['GET'])
 def parcels_filter(filter_var):
     if filter_var == "all":
         ret = get_all_parcels()
@@ -193,6 +193,15 @@ def parcels_filter(filter_var):
         }
         
     return jsonify(ret)
+
+@app.route('/api/carrier', methods=['GET'])
+def carrier():
+    return jsonify(["DHL", "Posten", "Postnord"])
+
+@app.route('/api/add', methods=['POST'])
+def add():
+    return jsonify(["a", "b", "c"])
+
 
 
 @app.route('/')
