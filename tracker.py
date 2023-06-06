@@ -185,7 +185,14 @@ def add(name):
     data = request.get_json()
     parcels = get_all_parcels()
 
-    logging.debug(data)
+    tmp_json = {
+            "tracking_number": data["tracking_number"],
+            "carrier": data["carrier"]
+            }
+    parcels[name] = tmp_json
+    logging.debug(json.dumps(parcels, indent=4))
+
+    write_config(parcels, "packages.json")
 
     return jsonify(True)
 
