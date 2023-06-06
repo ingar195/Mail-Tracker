@@ -1,8 +1,9 @@
 :root {
   --background-color: #1E1E1E;
   --foreground-color: #333333;
-  --header-color: #ddd;
   --button-color: #0E639C;
+  --text-color: #ddd;
+
 }  
     
 body { 
@@ -13,12 +14,13 @@ body {
 table {
   border-collapse: collapse;
   width: 100%;
-  background-color: #f5f5f5;
+  background-color: #666666;
   border-radius: 8px;
   overflow: hidden;
   min-width: 500px;
   margin-top : 10px;
   margin-bottom : 10px;
+  color: var(--text-color);
 }
 
 th, td {
@@ -29,7 +31,7 @@ th, td {
 /* Table */
 th {
   background-color: #555555;
-  color: #fff;
+  color: var(--text-color);
 }
 
 /* Table content even*/
@@ -38,10 +40,10 @@ tr:nth-child(even) {
 }
 
 button {
-  background-color: #4CAF50;
+  background-color: var(--button-color);
   cursor: pointer;
   border: none;
-  color: white;
+  color: var(--text-color);
   border-radius: 4px;
   padding: 10px 10px;
   width: 100%; /* Set the button width to 100% */
