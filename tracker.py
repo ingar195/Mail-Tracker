@@ -196,11 +196,11 @@ def parcels_filter(filter_var):
 
 @app.route('/api/carrier', methods=['GET'])
 def carrier():
-    return jsonify(["DHL", "Posten", "Postnord"])
+    return jsonify(["posten"])
 
 @app.route('/api/add', methods=['POST'])
 def add():
-    return jsonify(["a", "b", "c"])
+    return jsonify(True)
 
 
 
