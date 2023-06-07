@@ -84,7 +84,7 @@ def get_provider(tracking_number):
 def track(tracking_number, carrier=None):
     logging.debug("track")
 
-    if  carrier != None:
+    if  carrier != None or carrier == "sample":
         carrier = get_provider(tracking_number)
         logging.debug(carrier)
     else:
