@@ -4,6 +4,13 @@ console.log("script.js loaded")
 window.onload = getParcels()
 window.onload = updateCarrierList
 
+function deletePackage() {
+    // Get the form data
+    const parcelName = (document.getElementById('parcelName')).value;
+    console.log('Deleting package: ', parcelName);
+    endpoint = `http://127.0.0.1:1234/api/delete/${parcelName}`
+}
+
 function addPackage() {
     // Get the form data
     const trackingNumber = (document.getElementById('trackingNumber')).value;
@@ -58,7 +65,7 @@ function getParcels() {
                 row.appendChild(carrierCell);
 
                 const etaCell = document.createElement('td');
-                etaCell.textContent = packageData.ETA;
+                etaCell.textContent = packageData.eta;
                 row.appendChild(etaCell);
 
                 const shipmentStateCell = document.createElement('td');

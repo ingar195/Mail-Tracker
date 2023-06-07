@@ -33,18 +33,22 @@ def posten(tracking_number="70730259304981356", lang="en"):
         sender = package_set["senderName"]
 
         event = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]
-        status = event["status"]
-        last_event = event["description"]
+        shipment_state = event["status"]
+        last_update = event["description"]
         date = event["displayDate"]
         time = event["displayTime"]
+
+        if not eta:
+            eta = "Unknown"
+
         logging.debug(eta)
         logging.debug(sender)
-        logging.debug(status)
-        logging.debug(last_event)
+        logging.debug(shipment_state)
+        logging.debug(last_update)
         logging.debug(date)
         logging.debug(time)
 
-        return {"eta", eta, "status", status, "last_event", last_event, "date", date, "time", time}
+        return {"tracking_number": tracking_number, "eta": eta, "shipment_state": shipment_state, "last_update": last_update, "date": date, "time": time}
     except Exception as e:
         logging.error(e)
         return False
@@ -77,10 +81,27 @@ def get_provider(tracking_number):
     logging.error("No provider found")
 
 
-def track(parcel_file, config_file):
+def track(tracking_number, carrier=None):
+    logging.debug("track")
+
+    if not carrier:
+        carrier = get_provider(tracking_number)
+    logging.debug(carrier)
+
+    if carrier == "posten":
+        return posten(tracking_number)
+    elif carrier == "postnord":
+        return postnord(tracking_number)
+    else:
+        return False
+
+
+def update_all(parcel_file="packages.json", config_file="config.json"):
 
     packages = read_config(parcel_file)
-    
+
+    ret_data = {}
+
     for package in packages:
 
         tracking_number = packages[package]["tracking_number"]
@@ -102,7 +123,19 @@ def track(parcel_file, config_file):
 
         elif carrier == "postnord":
             tracking_data = postnord(tracking_number)
+
+        else:
+            return False
+
         logging.debug(tracking_data)
+        if tracking_data["shipment_state"] != packages[package]["shipment_state"]:
+            logging.info(f"Package {package} has changed status from {packages[package]['shipment_state']} to {tracking_data['shipment_state']}")
+            ret_data[package] = tracking_data
+
+        else:
+            logging.info(f"Package {package} has not changed status")
+
+    return ret_data
 
 
 def read_config(file_name):
@@ -121,6 +154,8 @@ def write_config(data, json_file):
 
 def notify(name, current_state):
     logging.debug(f"Notify({name}, {current_state}):")
+    pb = Pushbullet(read_config("pushbulletapikey"))
+
     # logging.INFO(f"Alert {Name}: {CurrentState}")
     pb.push_note(name, current_state)
 
@@ -133,6 +168,8 @@ def get_all_parcels():
 
 
 app = Flask(__name__)
+
+
 @app.route('/api/tracking/<tracking_number>', methods=['GET'])
 def api_track(tracking_number):
     return jsonify(["a", "b", "c"])
@@ -142,34 +179,42 @@ def api_track(tracking_number):
 def parcels_filter(filter_var):
     if filter_var == "all":
         ret = get_all_parcels()
-        
+
     return jsonify(ret)
+
 
 @app.route('/api/carrier', methods=['GET'])
 def carrier():
     return jsonify(["posten"])
 
-@app.route('/api/add/<name>', methods=['POST'])
-def add(name):
-    data = request.get_json()
-    parcels = get_all_parcels()
 
-    tmp_json = {
-            "tracking_number": data["tracking_number"],
-            "carrier": data["carrier"]
-            }
-    parcels[name] = tmp_json
-    logging.debug(json.dumps(parcels, indent=4))
+@app.route('/api/<add_rm>/<name>', methods=['POST', 'GET'])
+def add(name, add_rm):
+    logging.debug(f"add({name}, {add_rm}):")
+    if add_rm == "add":
+        data = request.get_json()
+        carrier = data["carrier"]
+        parcels = get_all_parcels()
+        tmp_json = track(data["tracking_number"], carrier)
+        tmp_json["carrier"] = carrier
+        parcels[name] = tmp_json
+        logging.debug(json.dumps(parcels, indent=4))
 
-    write_config(parcels, "packages.json")
+        write_config(parcels, "packages.json")
 
-    return jsonify(True)
-
+        return jsonify({"status": "ok", "message": "Package added"})
+    
+    elif add_rm == "rm":
+        parcels = get_all_parcels()
+        parcels.pop(name)
+        write_config(parcels, "packages.json")
+        return jsonify({"status": "ok", "message": "Package removed"})
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/test')
 def pages():
@@ -177,7 +222,7 @@ def pages():
 
 
 if __name__ == "__main__":
-    
+
     parser = argparse.ArgumentParser(description="Track packages")
     parser.add_argument("-c", "--config", help="config file", default="config.json", required=False)
     parser.add_argument("-pa", "--parcel", help="parcel file", default="packages.json", required=False)
@@ -190,7 +235,6 @@ if __name__ == "__main__":
     config_file = args.config
     web_port = args.port
 
-
     logging.basicConfig(
         format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
         datefmt='%d-%m-%Y:%H:%M:%S',
@@ -200,12 +244,6 @@ if __name__ == "__main__":
             logging.StreamHandler()
         ])
 
-    # pb = Pushbullet(read_file("pushbulletapikey"))
     app.run(host='0.0.0.0', port=web_port, debug=True)
-    
+
     # track(parcel_file, config_file)
-
-
-
-
-
