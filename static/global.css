@@ -2,7 +2,7 @@
   --background-color: #1E1E1E;
   --foreground-color: #333333;
   --button-color: #0E639C;
-  --text-color: #ddd;
+  --text-color: #f5f5f5;
 
 }  
     
@@ -35,6 +35,11 @@ th, td {
 th {
   background-color: #555555;
   color: #fff;
+}
+
+
+.capitalize {
+  text-transform: capitalize;
 }
 
 /* Table content even*/

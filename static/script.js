@@ -55,6 +55,7 @@ function getParcels() {
 
                 const nameCell = document.createElement('td');
                 nameCell.textContent = name;
+                nameCell.classList.add('capitalize');
                 row.appendChild(nameCell);
 
                 const trackingNumberCell = document.createElement('td');
@@ -63,6 +64,7 @@ function getParcels() {
 
                 const carrierCell = document.createElement('td');
                 carrierCell.textContent = packageData.carrier;
+                carrierCell.classList.add('capitalize');
                 row.appendChild(carrierCell);
 
                 const etaCell = document.createElement('td');
@@ -71,6 +73,7 @@ function getParcels() {
 
                 const shipmentStateCell = document.createElement('td');
                 shipmentStateCell.textContent = packageData.shipment_state;
+                shipmentStateCell.classList.add('capitalize');
                 row.appendChild(shipmentStateCell);
 
                 const actionCell = document.createElement('td');
