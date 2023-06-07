@@ -51,6 +51,7 @@ button {
 
 input[type="text"],
 select {
+  color: var(--text-color);
   text-transform: capitalize;
   background-color: #585858;
   padding: 8px;
