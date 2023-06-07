@@ -16,28 +16,28 @@ function addPackage() {
     const trackingNumber = (document.getElementById('trackingNumber')).value;
     const carrier = (document.getElementById('carrierDropDown')).value;
     const parcelName = (document.getElementById('parcelName')).value;
+    
     console.log('Adding package: ', parcelName, trackingNumber, carrier);
     endpoint = `http://127.0.0.1:1234/api/add/${parcelName}`
+    data = {
+        carrier: carrier,
+        tracking_number: trackingNumber
+    }
+    apiCall(endpoint, data)
+}
+
+function apiCall(endpoint, data) {
     fetch(endpoint, {
         method: "POST",
         headers: new Headers({ "content-type": "application/json" }),
-        body: JSON.stringify({
-            carrier: carrier,
-            tracking_number: trackingNumber
-        })
-
+        body: JSON.stringify(data)
     }
     ).then(response => {
         if (response.ok) {
-            console.log('Package added successfully');
-            // Perform any further actions upon successful package addition
-
-            // Call getParcels function after the package is added
+            console.log(response);
             getParcels();
         }
     })
-
-
 }
 
 function getParcels() {
