@@ -92,12 +92,13 @@ def track(tracking_number, carrier=None):
         return False
 
     if carrier == "posten":
-        return posten(tracking_number)
+        tmp_json = posten(tracking_number)
     elif carrier == "postnord":
-        return postnord(tracking_number)
+        tmp_json = postnord(tracking_number)
     else:
         return False
-
+    
+    return tmp_json
 
 def update_all(parcel_file="packages.json", config_file="config.json"):
 
@@ -134,6 +135,11 @@ def update_all(parcel_file="packages.json", config_file="config.json"):
         if tracking_data["shipment_state"] != packages[package]["shipment_state"]:
             logging.info(f"Package {package} has changed status from {packages[package]['shipment_state']} to {tracking_data['shipment_state']}")
             ret_data[package] = tracking_data
+            # Update package state
+            tracking_data["carrier"] = carrier
+            packages[package] = tracking_data
+            logging.debug(json.dumps(packages, indent=4))   
+            write_config(packages, "packages.json")
 
         else:
             logging.info(f"Package {package} has not changed status")
@@ -165,6 +171,7 @@ def notify(name, current_state):
 
 def get_all_parcels():
     logging.debug("get_all_parcels()")
+    update_all()
     parcels = read_config("packages.json")
     logging.debug(parcels)
     return parcels
@@ -187,7 +194,7 @@ def parcels_filter(filter_var):
 
 
 @app.route('/api/carrier', methods=['GET'])
-def carrier():
+def get_carrier():
     return jsonify(["posten"])
 
 
