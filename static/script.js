@@ -2,13 +2,14 @@ console.log("script.js loaded")
 
 //function run the update function when the page loads
 window.onload = getParcels()
-window.onload = updateCarrierList
+window.onload = updateCarrierList()
 
-function deletePackage() {
+function deletePackage(name) {
     // Get the form data
-    const parcelName = (document.getElementById('parcelName')).value;
-    console.log('Deleting package: ', parcelName);
-    endpoint = `http://127.0.0.1:1234/api/delete/${parcelName}`
+    console.log('Deleting package: ', name);
+    endpoint = `http://127.0.0.1:1234/api/rm/${name}`
+    apiCall(endpoint, {})
+    updateCarrierList()
 }
 
 function addPackage() {
@@ -16,7 +17,7 @@ function addPackage() {
     const trackingNumber = (document.getElementById('trackingNumber')).value;
     const carrier = (document.getElementById('carrierDropDown')).value;
     const parcelName = (document.getElementById('parcelName')).value;
-    
+
     console.log('Adding package: ', parcelName, trackingNumber, carrier);
     endpoint = `http://127.0.0.1:1234/api/add/${parcelName}`
     data = {
@@ -74,7 +75,11 @@ function getParcels() {
 
                 const actionCell = document.createElement('td');
                 const button = document.createElement('button');
-                button.textContent = 'Confirm';
+                button.textContent = 'Delete';
+                button.id = name;
+                button.onclick = function () {
+                    deletePackage(button.id);
+                }
                 actionCell.classList.add('button-cell');
                 actionCell.appendChild(button);
                 row.appendChild(actionCell);
