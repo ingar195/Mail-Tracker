@@ -1,9 +1,10 @@
-console.log("script.js loaded")
+console.log("script.js loaded");
 
 //function run the update function when the page loads
-window.onload = getParcels()
-window.onload = updateCarrierList()
-
+window.onload = function() {
+    updateCarrierList();
+    getParcels()
+  };
 function deletePackage(name) {
     // Get the form data
     console.log('Deleting package: ', name);
