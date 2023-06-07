@@ -50,7 +50,6 @@ def posten(tracking_number="70730259304981356", lang="en"):
         return False
 
 
-
 def postnord(tracking_number):
     return
     logging.debug("postnord")
@@ -104,36 +103,6 @@ def track(parcel_file, config_file):
         elif carrier == "postnord":
             tracking_data = postnord(tracking_number)
         logging.debug(tracking_data)
-
-
-def check_status(current_state, package, tracking_data):
-    logging.debug(f"Check status(c{current_state}, p{package}, data{tracking_data}):")
-
-    if tracking_data != "Tracking id invalid":
-        checked_state = tracking_data[0]
-        checked_eta = tracking_data[1]
-        last_update = current_state[package]["LastUpdate"]
-        eta = current_state[package]["ETA"]
-        
-        logging.info(f"{package}: last state: {checked_state}")
-
-        if eta != checked_eta:
-            notify(package, f"ETA changed form {eta} to {checked_eta}")
-            current_state[package]["ETA"] = checked_eta
-        if last_update != checked_state:
-            notify(package, f"Last update changed form {last_update} to {checked_state}")
-            current_state[package]["LastUpdate"] = checked_state
-        write_config(current_state)
-    else:
-        logging.error("No data from provider")
-
-
-def read_file(file_name):
-    logging.debug("ReadFile")
-    with open(file_name) as f:
-        file_lines = f.readline()
-    logging.debug(f"Return: {file_lines}")
-    return file_lines
 
 
 def read_config(file_name):
