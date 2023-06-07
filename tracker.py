@@ -84,9 +84,12 @@ def get_provider(tracking_number):
 def track(tracking_number, carrier=None):
     logging.debug("track")
 
-    if not carrier:
+    if  carrier != None:
         carrier = get_provider(tracking_number)
-    logging.debug(carrier)
+        logging.debug(carrier)
+    else:
+        logging.error("Carrier not found")
+        return False
 
     if carrier == "posten":
         return posten(tracking_number)
@@ -196,13 +199,20 @@ def add(name, add_rm):
         carrier = data["carrier"]
         parcels = get_all_parcels()
         tmp_json = track(data["tracking_number"], carrier)
-        tmp_json["carrier"] = carrier
-        parcels[name] = tmp_json
-        logging.debug(json.dumps(parcels, indent=4))
+        logging.debug(tmp_json)
 
-        write_config(parcels, "packages.json")
+        if tmp_json:
+            logging.debug("Package tracked")
+            tmp_json["carrier"] = carrier
+            parcels[name] = tmp_json
+            logging.debug(json.dumps(parcels, indent=4))   
+            write_config(parcels, "packages.json")
+            return jsonify({"status": "ok", "message": "Package added"})
+        
+        else:
+            logging.error("Could not track package")
+            return jsonify({"status": "error", "message": "Could not track package"})
 
-        return jsonify({"status": "ok", "message": "Package added"})
     
     elif add_rm == "rm":
         parcels = get_all_parcels()
