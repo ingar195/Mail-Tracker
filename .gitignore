@@ -1,10 +1,4 @@
-pushbulletapikey
-Monitor.py
-trackingnumbers
-postnordapikey
-posten.json
-posten error.json
-postnord.json
-pn.json
-Tracker.log
-packages.json
+*.json
+*.log
+a.*
+.vscode
