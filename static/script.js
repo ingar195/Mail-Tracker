@@ -9,7 +9,6 @@ function deletePackage(name) {
     console.log('Deleting package: ', name);
     endpoint = `http://127.0.0.1:1234/api/rm/${name}`
     apiCall(endpoint, {})
-    updateCarrierList()
 }
 
 function addPackage() {
