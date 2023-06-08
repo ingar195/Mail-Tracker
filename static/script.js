@@ -12,6 +12,13 @@ function deletePackage(name) {
     apiCall(endpoint, {})
 }
 
+function handleKeyDown(event) {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent the default Enter key behavior (e.g., form submission)
+      addPackage(); // Call the function to add a package
+    }
+  }
+
 function addPackage() {
     // Get the form data
     const trackingNumber = (document.getElementById('trackingNumber')).value;
