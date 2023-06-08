@@ -30,7 +30,6 @@ def posten(tracking_number="70730259304981356", lang="en"):
     if lang not in lang_list:
         logging.error(f"Language {lang} not supported, default to en")
         lang = "en"
-
     data = get_data(f"https://sporing.bring.no/tracking/api/fetch?query={tracking_number}&lang={lang}")
     logging.debug(data)
     logging.debug("---------------------------")
@@ -155,13 +154,6 @@ def get_provider(tracking_number):
 def track(tracking_number, carrier=None):
     logging.debug("track")
 
-    if carrier != None or carrier == "sample":
-        carrier = get_provider(tracking_number)
-        logging.debug(carrier)
-    else:
-        logging.error("Carrier not found")
-        return False
-
     if carrier == "posten":
         tmp_json = posten(tracking_number)
     elif carrier == "postnord":
@@ -280,6 +272,7 @@ def add(name, add_rm):
     logging.debug(f"add({name}, {add_rm}):")
     if add_rm == "add":
         data = request.get_json()
+        logging.debug(data)
         carrier = data["carrier"]
         parcels = get_all_parcels()
         tmp_json = track(data["tracking_number"], carrier)
@@ -300,7 +293,7 @@ def add(name, add_rm):
             parcels[name] = {"tracking_number": data["tracking_number"], "shipment_state": "No results"}
 
         write_config(parcels, "packages.json")
-        return jsonify({"status": status, "message": message})
+        return jsonify(parcels)
 
     elif add_rm == "rm":
         parcels = get_all_parcels()
