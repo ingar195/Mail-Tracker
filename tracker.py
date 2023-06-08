@@ -34,7 +34,7 @@ def posten(tracking_number="70730259304981356", lang="en"):
     data = get_data(f"https://sporing.bring.no/tracking/api/fetch?query={tracking_number}&lang={lang}")
     logging.debug(data)
     logging.debug("---------------------------")
-    if data["consignmentSet"][0]["packageSet"][0]["eventSet"][0].get("status"):
+    if "error" not in data["consignmentSet"][0]:
 
         package_set = data["consignmentSet"][0]["packageSet"][0]
         eta = package_set["dateOfEstimatedDelivery"]
@@ -60,7 +60,7 @@ def posten(tracking_number="70730259304981356", lang="en"):
         return  ret 
     
     else:
-        package_not_found(tracking_number)
+        return package_not_found(tracking_number)
 
 
 
