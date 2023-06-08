@@ -1,0 +1,44 @@
+<head>
+	<title>Mail Tracker</title>
+	<link rel="stylesheet" type="text/css" href="../static/global.css">
+	<script src="../static/script.js"></script>
+</head>
+
+<body>
+	<table id="new">
+		<tr>
+			<th>Name</th>
+			<th>Tracking number</th>
+			<th>Carrier</th>
+			<th></th>
+		</tr>
+		<tr>
+			<td><input type="text" id="parcelName" onkeydown="handleKeyDown(event)"></td>
+			<td><input type="text" id="trackingNumber" onkeydown="handleKeyDown(event)"></td>
+			<td>
+				<select name="carrier" id="carrierDropDown">
+					<!-- This should come from backend -->
+					<option value="sample">Sample</option>
+					<option value="sample">Data</option>
+				</select>
+			</td>
+			<td>
+				<button class="button-cell" id="add" onclick="addPackage()">Add</button>
+			</td>
+		</tr>
+	</table>
+
+	<table id="packagesTable">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Tracking number</th>
+				<th>Provider</th>
+				<th>Eta</th>
+				<th>State</th>
+				<th>Delete</th>
+			</tr>
+		</thead>
+		<tbody id="packagesTableBody"></tbody>
+	</table>
+</body>
