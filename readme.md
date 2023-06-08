@@ -24,8 +24,6 @@ python3 tracker.py
 
 
 ## Plans:
-- Reduce the loading time
-    - Partial reload of data, instead of retracing all packages at once 
 - Alert's
     - Slack
     - Pushbullet
