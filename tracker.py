@@ -300,7 +300,7 @@ def add(name, add_rm):
         parcels = get_all_parcels()
         parcels.pop(name)
         write_config(parcels, "packages.json")
-        return jsonify({"status": "ok", "message": "Package removed"})
+        return jsonify(parcels)
 
 
 @app.route('/')
