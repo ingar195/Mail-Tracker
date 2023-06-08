@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify, render_template
 from pushbullet import Pushbullet
+from bs4 import BeautifulSoup
 import requests
 import argparse
 import logging
 import json
-import os
 
 
 def get_data(url):
@@ -18,15 +18,23 @@ def get_data(url):
         print("No connection to server {}".format(url))
         return None
 
+def log_dict(data):
+    logging.debug("log_dict")
+    for key, value in data.items():
+        logging.debug(f"{key}: {value}")
+
 
 def posten(tracking_number="70730259304981356", lang="en"):
+    logging.debug(f'tracking_number="{70730259304981356}", lang="{lang}"')
     lang_list = ["en", "no"]
     if lang not in lang_list:
         logging.error(f"Language {lang} not supported, default to en")
         lang = "en"
 
-    try:
-        data = get_data(f"https://sporing.bring.no/tracking/api/fetch?query={tracking_number}&lang={lang}")
+    data = get_data(f"https://sporing.bring.no/tracking/api/fetch?query={tracking_number}&lang={lang}")
+    logging.debug(data)
+    logging.debug("---------------------------")
+    if data["consignmentSet"][0]["packageSet"][0]["eventSet"][0].get("status"):
 
         package_set = data["consignmentSet"][0]["packageSet"][0]
         eta = package_set["dateOfEstimatedDelivery"]
@@ -40,37 +48,100 @@ def posten(tracking_number="70730259304981356", lang="en"):
 
         if not eta:
             eta = "Unknown"
+        ret = {
+            "tracking_number": tracking_number, 
+            "eta": eta, 
+            "shipment_state": shipment_state, 
+            "last_update": last_update, 
+            "date": date, 
+            "time": time
+        }  
+        log_dict(ret)
+        return  ret 
+    
+    else:
+        package_not_found(tracking_number)
 
-        logging.debug(eta)
-        logging.debug(sender)
-        logging.debug(shipment_state)
-        logging.debug(last_update)
-        logging.debug(date)
-        logging.debug(time)
 
-        return {"tracking_number": tracking_number, "eta": eta, "shipment_state": shipment_state, "last_update": last_update, "date": date, "time": time}
-    except Exception as e:
-        logging.error(e)
-        return False
+
+def norwegian_characters(text):
+    replace_dict = {
+        "\u00c5": "å",
+        "\u00f8": "ø",
+        "\u00e5": "å",
+        "\u00e6": "æ",
+        "\u00d8": "Ø",
+        "\u00c6": "Æ"
+    }
+
+    for key, value in replace_dict.items():
+        print(f"Replacing {key} with {value}")
+        text = text.replace(key, value)
+
+    return text
+
+
+def write_file(filename, data, json_format=True):
+    with open(filename, "w") as outfile:
+        if json_format:
+            json.dump(data, outfile, indent=4)
+        else:
+            outfile.write(data)
+
+
+def soup_page(url):
+    response = requests.get(url)
+    html_content = response.text
+    soup = BeautifulSoup(html_content, "html.parser")
+
+    return soup
 
 
 def postnord(tracking_number):
-    return
-    logging.debug("postnord")
-    postnord_api_key = read_file("postnordapikey")
-    data = get_data(f"https://api2.postnord.com/rest/shipment/v5/trackandtrace/findByIdentifier.json?apikey={postnord_api_key}&id={tracking_number}&locale=no")
-    try:
-        header = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["header"]
-        try:
-            eta = data["TrackingInformationResponse"]["shipments"][0]["statusText"]["estimatedTimeOfArrival"]
-        except:
-            eta = ""
+    soup = soup_page("https://my.postnord.no/tracking/" + tracking_number)
+    div_app = soup.find("div", id="app")
 
-        logging.debug(header)
-        return header, eta
-    except:
-        return False
+    json_data = div_app.get("data-page")
+    json_data = json.loads(div_app.get("data-page"))
 
+    print("---------------------------")
+    logging.debug(json_data)
+    if json_data["component"] != "Errors/ShipmentNotFound":
+
+        eta = "Not supported"
+
+        shipment_state = json_data["props"]["shipment"]["status"]["text"]
+        last_update = json_data["props"]["shipment"]["parcels"][0]["events"][0]["date_time"]
+        date = "Not supported"
+        time = "Not supported"
+
+        ret = {
+            "tracking_number": tracking_number, 
+            "eta": eta, 
+            "shipment_state": shipment_state, 
+            "last_update": last_update, 
+            "date": date, 
+            "time": time
+        }  
+    else:
+        ret = package_not_found(tracking_number)
+    log_dict(ret)
+    return  ret 
+
+
+def package_not_found(tracking_number):
+        ret = {
+            "failed": True,
+            "tracking_number": tracking_number, 
+            "eta": "", 
+            "shipment_state": "Package not found", 
+            "last_update": "", 
+            "date": "", 
+            "time": ""
+        } 
+        logging.error(f"Package not found: {tracking_number}")
+
+        return ret
 
 def get_provider(tracking_number):
     function_list = [posten, postnord]
@@ -84,7 +155,7 @@ def get_provider(tracking_number):
 def track(tracking_number, carrier=None):
     logging.debug("track")
 
-    if  carrier != None or carrier == "sample":
+    if carrier != None or carrier == "sample":
         carrier = get_provider(tracking_number)
         logging.debug(carrier)
     else:
@@ -97,8 +168,9 @@ def track(tracking_number, carrier=None):
         tmp_json = postnord(tracking_number)
     else:
         return False
-    
+
     return tmp_json
+
 
 def update_all(parcel_file="packages.json", config_file="config.json"):
 
@@ -120,9 +192,9 @@ def update_all(parcel_file="packages.json", config_file="config.json"):
                 packages[package]["carrier"] = carrier
                 write_config(packages, parcel_file)
             logging.debug(carrier)
-            input("Press enter to continue")
 
         if carrier == "posten":
+            logging.debug("posten")
             tracking_data = posten(tracking_number)
 
         elif carrier == "postnord":
@@ -132,17 +204,22 @@ def update_all(parcel_file="packages.json", config_file="config.json"):
             return False
 
         logging.debug(tracking_data)
-        if tracking_data["shipment_state"] != packages[package]["shipment_state"]:
-            logging.info(f"Package {package} has changed status from {packages[package]['shipment_state']} to {tracking_data['shipment_state']}")
-            ret_data[package] = tracking_data
-            # Update package state
-            tracking_data["carrier"] = carrier
-            packages[package] = tracking_data
-            logging.debug(json.dumps(packages, indent=4))   
-            write_config(packages, "packages.json")
+        logging.debug("---------------------------")
+        if not tracking_data.get("failed"):
 
+            if tracking_data["shipment_state"] != packages[package]["shipment_state"]:
+                logging.info(f"Package {package} has changed status from {packages[package]['shipment_state']} to {tracking_data['shipment_state']}")
+                ret_data[package] = tracking_data
+                # Update package state
+                tracking_data["carrier"] = carrier
+                packages[package] = tracking_data
+                logging.debug(json.dumps(packages, indent=4))
+                write_config(packages, "packages.json")
+
+            else:
+                logging.info(f"Package {package} has not changed status")
         else:
-            logging.info(f"Package {package} has not changed status")
+            logging.error(f"Package {package} not found")
 
     return ret_data
 
@@ -195,7 +272,7 @@ def parcels_filter(filter_var):
 
 @app.route('/api/carrier', methods=['GET'])
 def get_carrier():
-    return jsonify(["posten"])
+    return jsonify(["posten", "postnord"])
 
 
 @app.route('/api/<add_rm>/<name>', methods=['POST', 'GET'])
@@ -212,15 +289,19 @@ def add(name, add_rm):
             logging.debug("Package tracked")
             tmp_json["carrier"] = carrier
             parcels[name] = tmp_json
-            logging.debug(json.dumps(parcels, indent=4))   
-            write_config(parcels, "packages.json")
-            return jsonify({"status": "ok", "message": "Package added"})
-        
+            logging.debug(json.dumps(parcels, indent=4))
+            status = "ok"
+            message = "Package added"
+
         else:
             logging.error("Could not track package")
-            return jsonify({"status": "error", "message": "Could not track package"})
+            status = "error"
+            message = "Package Failed"
+            parcels[name] = {"tracking_number": data["tracking_number"], "shipment_state": "No results"}
 
-    
+        write_config(parcels, "packages.json")
+        return jsonify({"status": status, "message": message})
+
     elif add_rm == "rm":
         parcels = get_all_parcels()
         parcels.pop(name)
