@@ -238,9 +238,10 @@ def notify(name, current_state):
     pb.push_note(name, current_state)
 
 
-def get_all_parcels():
+def get_all_parcels(track=False):
     logging.debug("get_all_parcels()")
-    update_all()
+    if track:
+        update_all()
     parcels = read_config("packages.json")
     logging.debug(parcels)
     return parcels
@@ -257,7 +258,7 @@ def api_track(tracking_number):
 @app.route('/api/parcels/<filter_var>', methods=['GET'])
 def parcels_filter(filter_var):
     if filter_var == "all":
-        ret = get_all_parcels()
+        ret = get_all_parcels(True)
 
     return jsonify(ret)
 
@@ -305,11 +306,6 @@ def add(name, add_rm):
 @app.route('/')
 def index():
     return render_template('index.html')
-
-
-@app.route('/test')
-def pages():
-    return render_template('test.html')
 
 
 if __name__ == "__main__":
