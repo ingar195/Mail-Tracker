@@ -109,49 +109,7 @@ function getParcels() {
     fetch('http://127.0.0.1:1234/api/parcels/all')
         .then(response => response.json())
         .then(data => {
-            console.log('Packages data:', data);
-            const tableBody = document.getElementById('packagesTableBody');
-            tableBody.replaceChildren();
-            // Iterate over the packages data and generate table rows
-            for (const [name, packageData] of Object.entries(data)) {
-                const row = document.createElement('tr');
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = name;
-                nameCell.classList.add('capitalize');
-                row.appendChild(nameCell);
-
-                const trackingNumberCell = document.createElement('td');
-                trackingNumberCell.textContent = packageData.tracking_number;
-                row.appendChild(trackingNumberCell);
-
-                const carrierCell = document.createElement('td');
-                carrierCell.textContent = packageData.carrier;
-                carrierCell.classList.add('capitalize');
-                row.appendChild(carrierCell);
-
-                const etaCell = document.createElement('td');
-                etaCell.textContent = packageData.eta;
-                row.appendChild(etaCell);
-
-                const shipmentStateCell = document.createElement('td');
-                shipmentStateCell.textContent = packageData.shipment_state;
-                shipmentStateCell.classList.add('capitalize');
-                row.appendChild(shipmentStateCell);
-
-                const actionCell = document.createElement('td');
-                const button = document.createElement('button');
-                button.textContent = 'Delete';
-                button.id = name;
-                button.onclick = function () {
-                    deletePackage(button.id);
-                }
-                actionCell.classList.add('button-cell');
-                actionCell.appendChild(button);
-                row.appendChild(actionCell);
-
-                tableBody.appendChild(row);
-            }
+            updatePackage(data);
         });
 }
 
