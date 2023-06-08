@@ -36,16 +36,72 @@ function addPackage() {
 
 function apiCall(endpoint, data) {
     fetch(endpoint, {
-        method: "POST",
-        headers: new Headers({ "content-type": "application/json" }),
-        body: JSON.stringify(data)
-    }
-    ).then(response => {
-        if (response.ok) {
-            console.log(response);
-            getParcels();
-        }
+      method: "POST",
+      headers: new Headers({ "content-type": "application/json" }),
+      body: JSON.stringify(data)
     })
+      .then(response => {
+        if (response.ok) {
+          console.log(response);
+          return response.json(); // Return the promise from response.json()
+        } else {
+          throw new Error('Network response was not OK.');
+        }
+      })
+      .then(data => {
+        // Process the JSON data
+        updatePackage(data);
+      })
+      .catch(error => {
+        // Handle any errors that occurred during the request or JSON parsing
+        console.error('Error:', error);
+      });
+  }
+
+function updatePackage(data) {
+    console.log('Packages data:', data);
+            const tableBody = document.getElementById('packagesTableBody');
+            tableBody.replaceChildren();
+            // Iterate over the packages data and generate table rows
+            for (const [name, packageData] of Object.entries(data)) {
+                const row = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = name;
+                nameCell.classList.add('capitalize');
+                row.appendChild(nameCell);
+
+                const trackingNumberCell = document.createElement('td');
+                trackingNumberCell.textContent = packageData.tracking_number;
+                row.appendChild(trackingNumberCell);
+
+                const carrierCell = document.createElement('td');
+                carrierCell.textContent = packageData.carrier;
+                carrierCell.classList.add('capitalize');
+                row.appendChild(carrierCell);
+
+                const etaCell = document.createElement('td');
+                etaCell.textContent = packageData.eta;
+                row.appendChild(etaCell);
+
+                const shipmentStateCell = document.createElement('td');
+                shipmentStateCell.textContent = packageData.shipment_state;
+                shipmentStateCell.classList.add('capitalize');
+                row.appendChild(shipmentStateCell);
+
+                const actionCell = document.createElement('td');
+                const button = document.createElement('button');
+                button.textContent = 'Delete';
+                button.id = name;
+                button.onclick = function () {
+                    deletePackage(button.id);
+                }
+                actionCell.classList.add('button-cell');
+                actionCell.appendChild(button);
+                row.appendChild(actionCell);
+
+                tableBody.appendChild(row);
+            }
 }
 
 function getParcels() {

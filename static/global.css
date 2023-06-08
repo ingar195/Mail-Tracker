@@ -20,7 +20,7 @@ table {
   background-color: #666666;
   border-radius: 8px;
   overflow: hidden;
-  min-width: 500px;
+  min-width: 600px;
   margin-top : 10px;
   margin-bottom : 10px;
   color: var(--text-color);
