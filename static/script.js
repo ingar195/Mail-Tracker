@@ -2,8 +2,13 @@ console.log("script.js loaded");
 
 //function run the update function when the page loads
 window.onload = function() {
+  if (window.location.pathname === "/") {
     updateCarrierList();
-    getParcels()
+    getParcels();
+  }
+  else if (window.location.pathname === "/config")
+  console.log("config page loaded");
+
   };
 function deletePackage(name) {
     // Get the form data
