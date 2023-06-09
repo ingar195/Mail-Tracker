@@ -5,22 +5,29 @@
 </head>
 
 <body>
-	<div><h1>Config Page</h1>
-	<a href="/"><button>Home</button></a></div>
+	<div>
+		<h1>Config Page</h1>
+		<a href="/"><button>Home</button></a>
+	</div>
 	<h2>Pushbullet</h2>
 	<table id="pushbullet">
-		<th>Enabled</th>
-		<th>Token</th>
-		<th>Alerts</th>
+		<tr>
+			<th>Enabled</th>
+			<th>Token</th>
+			<th>Alerts</th>
 		</tr>
-		<th><input class="checkbox" type="checkbox"></th>
-		<th><input type="text" name="" id=""></th>
-		<th>
-			<select name="alertsDropDown" id="alertsDropDown">
-				<option value="sample">Sample</option>
-				<option value="sample">Data</option>
-			</select>
-		</th>	
+		<tr>
+			<th><input id="pbCheck" class="checkbox" type="checkbox"></th>
+			<th><input id="pbApiKey" type="text" name="pbApiKey" id=""></th>
+			<th>
+				<select name="pbAlertsDropDown" id="pbAlertsDropDown">
+					<option value="sample">Sample</option>
+					<option value="sample">Data</option>
+				</select>
+			</th>
+		</tr>
 	</table>
-	<div><button id="saveConfig">Save</button></div>
+	<div>
+		<button id="saveConfig">Save config</button>
+	</div>
 </body>
