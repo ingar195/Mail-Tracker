@@ -44,6 +44,7 @@ def posten(tracking_number="70730259304981356", lang="en"):
         location = event["city"]
         if event["status"] == "DELIVERED":
             location = data["consignmentSet"][0]["packageSet"][0]["eventSet"][1]["city"]
+            eta = "Delivered"
         last_update = event["description"]
         date = event["displayDate"]
         time = event["displayTime"]
@@ -115,7 +116,10 @@ def postnord(tracking_number):
 
         shipment_state = json_data["props"]["shipment"]["status"]["text"]
         last_update = json_data["props"]["shipment"]["parcels"][0]["events"][0]["date_time"]
-        location = norwegian_characters(json_data["props"]["shipment"]["parcels"][0]["events"][0]["location_name"])
+        location = json_data["props"]["shipment"]["parcels"][0]["events"][0]["location_name"]
+
+        if shipment_state  == "Varene dine har blitt levert":
+            eta = "Delivered" 
         date = "Not supported"
         time = "Not supported"
 
