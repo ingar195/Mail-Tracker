@@ -18,6 +18,7 @@ def get_data(url):
         print("No connection to server {}".format(url))
         return None
 
+
 def log_dict(data):
     logging.debug("log_dict")
     for key, value in data.items():
@@ -52,20 +53,19 @@ def posten(tracking_number="70730259304981356", lang="en"):
         if not eta:
             eta = "Unknown"
         ret = {
-            "tracking_number": tracking_number, 
-            "eta": eta, 
-            "shipment_state": shipment_state, 
-            "last_update": last_update, 
-            "date": date, 
+            "tracking_number": tracking_number,
+            "eta": eta,
+            "shipment_state": shipment_state,
+            "last_update": last_update,
+            "date": date,
             "time": time,
             "location": location
-        }  
+        }
         log_dict(ret)
-        return  ret 
-    
+        return ret
+
     else:
         return package_not_found(tracking_number)
-
 
 
 def norwegian_characters(text):
@@ -118,39 +118,40 @@ def postnord(tracking_number):
         last_update = json_data["props"]["shipment"]["parcels"][0]["events"][0]["date_time"]
         location = json_data["props"]["shipment"]["parcels"][0]["events"][0]["location_name"]
 
-        if shipment_state  == "Varene dine har blitt levert":
-            eta = "Delivered" 
+        if shipment_state == "Varene dine har blitt levert":
+            eta = "Delivered"
         date = "Not supported"
         time = "Not supported"
 
         ret = {
-            "tracking_number": tracking_number, 
-            "eta": eta, 
-            "shipment_state": shipment_state, 
-            "last_update": last_update, 
-            "date": date, 
+            "tracking_number": tracking_number,
+            "eta": eta,
+            "shipment_state": shipment_state,
+            "last_update": last_update,
+            "date": date,
             "time": time,
             "location": location
-        }  
+        }
     else:
         ret = package_not_found(tracking_number)
     log_dict(ret)
-    return  ret 
+    return ret
 
 
 def package_not_found(tracking_number):
-        ret = {
-            "failed": True,
-            "tracking_number": tracking_number, 
-            "eta": "", 
-            "shipment_state": "Package not found", 
-            "last_update": "", 
-            "date": "", 
-            "time": ""
-        } 
-        logging.error(f"Package not found: {tracking_number}")
+    ret = {
+        "failed": True,
+        "tracking_number": tracking_number,
+        "eta": "",
+        "shipment_state": "Package not found",
+        "last_update": "",
+        "date": "",
+        "time": ""
+    }
+    logging.error(f"Package not found: {tracking_number}")
 
-        return ret
+    return ret
+
 
 def get_provider(tracking_number):
     function_list = [posten, postnord]
@@ -220,7 +221,7 @@ def update_all(parcel_file="packages.json", config_file="config.json"):
             packages[package] = tracking_data
             logging.debug(json.dumps(packages, indent=4))
             write_config(packages, "packages.json")
-            
+
         else:
             logging.error(f"Package {package} not found")
 
@@ -279,6 +280,11 @@ def get_carrier():
     return jsonify(["posten", "postnord"])
 
 
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    return jsonify(read_config("config.json"))
+
+
 @app.route('/api/<add_rm>/<name>', methods=['POST', 'GET'])
 def add(name, add_rm):
     logging.debug(f"add({name}, {add_rm}):")
@@ -317,6 +323,11 @@ def add(name, add_rm):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/config')
+def frontend_config():
+    return render_template('config.html')
 
 
 if __name__ == "__main__":
