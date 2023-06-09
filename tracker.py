@@ -40,7 +40,11 @@ def posten(tracking_number="70730259304981356", lang="en"):
         sender = package_set["senderName"]
 
         event = data["consignmentSet"][0]["packageSet"][0]["eventSet"][0]
-        shipment_state = event["status"]
+        shipment_state = event["description"]
+        location = event["city"]
+        if event["status"] == "DELIVERED":
+            location = data["consignmentSet"][0]["packageSet"][0]["eventSet"][1]["city"]
+            eta = "Delivered"
         last_update = event["description"]
         date = event["displayDate"]
         time = event["displayTime"]
@@ -53,7 +57,8 @@ def posten(tracking_number="70730259304981356", lang="en"):
             "shipment_state": shipment_state, 
             "last_update": last_update, 
             "date": date, 
-            "time": time
+            "time": time,
+            "location": location
         }  
         log_dict(ret)
         return  ret 
@@ -111,6 +116,10 @@ def postnord(tracking_number):
 
         shipment_state = json_data["props"]["shipment"]["status"]["text"]
         last_update = json_data["props"]["shipment"]["parcels"][0]["events"][0]["date_time"]
+        location = json_data["props"]["shipment"]["parcels"][0]["events"][0]["location_name"]
+
+        if shipment_state  == "Varene dine har blitt levert":
+            eta = "Delivered" 
         date = "Not supported"
         time = "Not supported"
 
@@ -120,7 +129,8 @@ def postnord(tracking_number):
             "shipment_state": shipment_state, 
             "last_update": last_update, 
             "date": date, 
-            "time": time
+            "time": time,
+            "location": location
         }  
     else:
         ret = package_not_found(tracking_number)
@@ -202,14 +212,15 @@ def update_all(parcel_file="packages.json", config_file="config.json"):
             if tracking_data["shipment_state"] != packages[package]["shipment_state"]:
                 logging.info(f"Package {package} has changed status from {packages[package]['shipment_state']} to {tracking_data['shipment_state']}")
                 ret_data[package] = tracking_data
-                # Update package state
-                tracking_data["carrier"] = carrier
-                packages[package] = tracking_data
-                logging.debug(json.dumps(packages, indent=4))
-                write_config(packages, "packages.json")
 
             else:
                 logging.info(f"Package {package} has not changed status")
+
+            tracking_data["carrier"] = carrier
+            packages[package] = tracking_data
+            logging.debug(json.dumps(packages, indent=4))
+            write_config(packages, "packages.json")
+            
         else:
             logging.error(f"Package {package} not found")
 

@@ -89,6 +89,11 @@ function updatePackage(data) {
                 shipmentStateCell.classList.add('capitalize');
                 row.appendChild(shipmentStateCell);
 
+                const locationStateCell = document.createElement('td');
+                locationStateCell.textContent = packageData.location;
+                locationStateCell.classList.add('capitalize');
+                row.appendChild(locationStateCell);
+
                 const actionCell = document.createElement('td');
                 const button = document.createElement('button');
                 button.textContent = 'Delete';
