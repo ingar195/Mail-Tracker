@@ -280,9 +280,21 @@ def get_carrier():
     return jsonify(["posten", "postnord"])
 
 
-@app.route('/api/get/config', methods=['GET', "POST"])
-def get_config():
+@app.route('/api/config/get', methods=['GET', "POST"])
+def config_get():
     return jsonify(read_config("config.json"))
+
+
+@app.route('/api/config/set', methods=['GET', "POST"])
+def config_set():
+    data = request.get_json()
+    cfg = read_config("config.json")
+    for key in data:
+        logging.debug(f"Key: {key}")
+        logging.debug(f"Value: {data[key]}")
+        cfg[key] = data[key]
+    write_config(data, "config.json")
+    return jsonify("data")
 
 
 @app.route('/api/add_rm/<add_rm>/<name>', methods=['POST', 'GET'])

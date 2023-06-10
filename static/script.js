@@ -14,7 +14,7 @@ window.onload = function () {
 }
 
 function loadConfig() {
-	endpoint = "/api/get/config";
+	endpoint = "/api/config/get";
 	data = apiCall(endpoint, { "config": "config" });
 
 	// Set form values
@@ -22,6 +22,20 @@ function loadConfig() {
 
 }
 
+function saveConfig() {
+	// Get the form data
+	const pbCheck = (document.getElementById('pbCheck')).checked;
+	const pbApiKey = (document.getElementById('pbApiKey')).value;
+	const pbAlerts = (document.getElementById('pbAlertsDropDown')).value;
+	data = {
+		"pushbullet": {
+			"enabled": pbCheck,
+			"token": pbApiKey,
+			"alert_states": pbAlerts
+		}
+	}
+	apiCall("/api/config/set", data)
+}
 function deletePackage(name) {
 	// Get the form data
 	console.log('Deleting package: ', name);
@@ -77,7 +91,6 @@ function apiCall(endpoint, data) {
 						document.getElementById("pbCheck").checked = packageData.enabled;
 						document.getElementById("pbApiKey").value = packageData.token;
 						console.log("pbAlertsDropDown", packageData.alert_states);
-						setSelectContent("pbAlertsDropDown", packageData.alert_states)
 					}
 				}
 
