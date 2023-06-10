@@ -74,6 +74,12 @@ input{
   box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
 }
 
-
-
+input[type="checkbox"] {
+  display: inline-block;
+  --checkBox-size: 34px;
+  width: var(--checkBox-size);
+  height: var(--checkBox-size);
+  background-color: var(--button-color);
+  border-color: var;
+}
 

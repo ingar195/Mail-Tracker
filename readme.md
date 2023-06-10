@@ -23,6 +23,9 @@ python3 tracker.py
 - This will start the server [here](http://127.0.0.1:1234) 
 
 
+## Pushbullet
+To generate a API key use this [link](https://www.pushbullet.com/#settings/account)
+
 ## Plans:
 - Alert's
     - Slack

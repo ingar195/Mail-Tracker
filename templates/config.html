@@ -1,0 +1,33 @@
+<head>
+	<title>Mail Tracker</title>
+	<link rel="stylesheet" type="text/css" href="../static/global.css">
+	<script src="../static/script.js"></script>
+</head>
+
+<body>
+	<div>
+		<h1>Config Page</h1>
+		<a href="/"><button>Home</button></a>
+	</div>
+	<h2>Pushbullet</h2>
+	<table id="pushbullet">
+		<tr>
+			<th>Enabled</th>
+			<th>Token</th>
+			<th>Alerts</th>
+		</tr>
+		<tr>
+			<th><input id="pbCheck" class="checkbox" type="checkbox"></th>
+			<th><input id="pbApiKey" type="text" name="pbApiKey" id=""></th>
+			<th>
+				<select name="pbAlertsDropDown" id="pbAlertsDropDown">
+					<option value="all">All</option>
+					<option value="delivered">Delivered</option>
+				</select>
+			</th>
+		</tr>
+	</table>
+	<div>
+		<button id="saveConfig" onclick="saveConfig()">Save config</button>
+	</div>
+</body>

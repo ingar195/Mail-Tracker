@@ -18,6 +18,7 @@ def get_data(url):
         print("No connection to server {}".format(url))
         return None
 
+
 def log_dict(data):
     logging.debug("log_dict")
     for key, value in data.items():
@@ -52,20 +53,19 @@ def posten(tracking_number="70730259304981356", lang="en"):
         if not eta:
             eta = "Unknown"
         ret = {
-            "tracking_number": tracking_number, 
-            "eta": eta, 
-            "shipment_state": shipment_state, 
-            "last_update": last_update, 
-            "date": date, 
+            "tracking_number": tracking_number,
+            "eta": eta,
+            "shipment_state": shipment_state,
+            "last_update": last_update,
+            "date": date,
             "time": time,
             "location": location
-        }  
+        }
         log_dict(ret)
-        return  ret 
-    
+        return ret
+
     else:
         return package_not_found(tracking_number)
-
 
 
 def norwegian_characters(text):
@@ -118,39 +118,40 @@ def postnord(tracking_number):
         last_update = json_data["props"]["shipment"]["parcels"][0]["events"][0]["date_time"]
         location = json_data["props"]["shipment"]["parcels"][0]["events"][0]["location_name"]
 
-        if shipment_state  == "Varene dine har blitt levert":
-            eta = "Delivered" 
+        if shipment_state == "Varene dine har blitt levert":
+            eta = "Delivered"
         date = "Not supported"
         time = "Not supported"
 
         ret = {
-            "tracking_number": tracking_number, 
-            "eta": eta, 
-            "shipment_state": shipment_state, 
-            "last_update": last_update, 
-            "date": date, 
+            "tracking_number": tracking_number,
+            "eta": eta,
+            "shipment_state": shipment_state,
+            "last_update": last_update,
+            "date": date,
             "time": time,
             "location": location
-        }  
+        }
     else:
         ret = package_not_found(tracking_number)
     log_dict(ret)
-    return  ret 
+    return ret
 
 
 def package_not_found(tracking_number):
-        ret = {
-            "failed": True,
-            "tracking_number": tracking_number, 
-            "eta": "", 
-            "shipment_state": "Package not found", 
-            "last_update": "", 
-            "date": "", 
-            "time": ""
-        } 
-        logging.error(f"Package not found: {tracking_number}")
+    ret = {
+        "failed": True,
+        "tracking_number": tracking_number,
+        "eta": "",
+        "shipment_state": "Package not found",
+        "last_update": "",
+        "date": "",
+        "time": ""
+    }
+    logging.error(f"Package not found: {tracking_number}")
 
-        return ret
+    return ret
+
 
 def get_provider(tracking_number):
     function_list = [posten, postnord]
@@ -208,10 +209,13 @@ def update_all(parcel_file="packages.json", config_file="config.json"):
         logging.debug(tracking_data)
         logging.debug("---------------------------")
         if not tracking_data.get("failed"):
+            old_state = packages[package]['shipment_state']
+            new_state = tracking_data['shipment_state']
 
-            if tracking_data["shipment_state"] != packages[package]["shipment_state"]:
-                logging.info(f"Package {package} has changed status from {packages[package]['shipment_state']} to {tracking_data['shipment_state']}")
+            if tracking_data["shipment_state"] != old_state:
+                logging.info(f"Package {package} has changed status from {old_state} to {new_state}")
                 ret_data[package] = tracking_data
+                alert(package, new_state)
 
             else:
                 logging.info(f"Package {package} has not changed status")
@@ -220,7 +224,7 @@ def update_all(parcel_file="packages.json", config_file="config.json"):
             packages[package] = tracking_data
             logging.debug(json.dumps(packages, indent=4))
             write_config(packages, "packages.json")
-            
+
         else:
             logging.error(f"Package {package} not found")
 
@@ -241,12 +245,9 @@ def write_config(data, json_file):
         f.write(json.dumps(data, indent=4))
 
 
-def notify(name, current_state):
+def notify_pb(name, current_state, api_key):
     logging.debug(f"Notify({name}, {current_state}):")
-    pb = Pushbullet(read_config("pushbulletapikey"))
-
-    # logging.INFO(f"Alert {Name}: {CurrentState}")
-    pb.push_note(name, current_state)
+    Pushbullet(api_key).push_note(name, current_state)
 
 
 def get_all_parcels(track=False):
@@ -256,6 +257,34 @@ def get_all_parcels(track=False):
     parcels = read_config("packages.json")
     logging.debug(parcels)
     return parcels
+
+
+def alert(name, state):
+    logging.debug("alert_config()")
+    config = read_config("config.json")
+
+    pb_enabled = config["pushbullet"]["enabled"]
+    pb_api_key = config["pushbullet"]["token"]
+    pb_alert_states = config["pushbullet"]["alert_states"]
+
+    if pb_enabled:
+        logging.debug("Pushbullet enabled")
+        if pb_api_key:
+            logging.debug("Pushbullet api key set")
+
+            if pb_alert_states == "Delivered":
+                logging.debug("Pushbullet alert states set to all")
+                if state == "Delivered":
+                    notify_pb(name, state, pb_api_key)
+
+            else:
+                logging.debug("Pushbullet alert states not set")
+                notify_pb(name, state, pb_api_key)
+
+        else:
+            logging.error("Pushbullet api key not set")
+    else:
+        logging.debug("Pushbullet not enabled")
 
 
 app = Flask(__name__)
@@ -279,7 +308,29 @@ def get_carrier():
     return jsonify(["posten", "postnord"])
 
 
-@app.route('/api/<add_rm>/<name>', methods=['POST', 'GET'])
+@app.route('/api/config/get', methods=['GET', "POST"])
+def config_get():
+    return jsonify(read_config("config.json"))
+
+
+@app.route('/api/config/set', methods=['GET', "POST"])
+def config_set():
+    data = request.get_json()
+    cfg = {}
+    try:
+        cfg = read_config("config.json")
+    except FileNotFoundError:
+        logging.warning("Config file not found")
+
+    for key in data:
+        logging.debug(f"Key: {key}")
+        logging.debug(f"Value: {data[key]}")
+        cfg[key] = data[key]
+    write_config(data, "config.json")
+    return jsonify("data")
+
+
+@app.route('/api/add_rm/<add_rm>/<name>', methods=['POST', 'GET'])
 def add(name, add_rm):
     logging.debug(f"add({name}, {add_rm}):")
     if add_rm == "add":
@@ -317,6 +368,11 @@ def add(name, add_rm):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/config')
+def frontend_config():
+    return render_template('config.html')
 
 
 if __name__ == "__main__":
