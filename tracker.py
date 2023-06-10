@@ -288,7 +288,12 @@ def config_get():
 @app.route('/api/config/set', methods=['GET', "POST"])
 def config_set():
     data = request.get_json()
-    cfg = read_config("config.json")
+    cfg = {}
+    try:
+        cfg = read_config("config.json")
+    except FileNotFoundError:
+        logging.warning("Config file not found")
+
     for key in data:
         logging.debug(f"Key: {key}")
         logging.debug(f"Value: {data[key]}")
