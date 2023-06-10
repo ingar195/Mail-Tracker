@@ -1,6 +1,5 @@
 console.log("script.js loaded");
 
-//function run the update function when the page loads
 window.onload = function () {
 	if (window.location.pathname === "/") {
 		console.log("home page loaded");
@@ -16,10 +15,6 @@ window.onload = function () {
 function loadConfig() {
 	endpoint = "/api/config/get";
 	data = apiCall(endpoint, { "config": "config" });
-
-	// Set form values
-	// document.getElementById("pbCheck").value = data.email;
-
 }
 
 function saveConfig() {
@@ -37,7 +32,6 @@ function saveConfig() {
 	apiCall("/api/config/set", data)
 }
 function deletePackage(name) {
-	// Get the form data
 	console.log('Deleting package: ', name);
 	endpoint = `/api/add_rm/rm/${name}`;
 	apiCall(endpoint, {});
@@ -45,13 +39,12 @@ function deletePackage(name) {
 
 function handleKeyDown(event) {
 	if (event.key === "Enter") {
-		event.preventDefault(); // Prevent the default Enter key behavior (e.g., form submission)
-		addPackage(); // Call the function to add a package
+		event.preventDefault(); 
+		addPackage();
 	}
 }
 
 function addPackage() {
-	// Get the form data
 	const trackingNumber = (document.getElementById('trackingNumber')).value;
 	const carrier = (document.getElementById('carrierDropDown')).value;
 	const parcelName = (document.getElementById('parcelName')).value;
@@ -74,7 +67,7 @@ function apiCall(endpoint, data) {
 		.then(response => {
 			if (response.ok) {
 				console.log(response);
-				return response.json(); // Return the promise from response.json()
+				return response.json(); 
 			} else {
 				throw new Error('Network response was not OK.');
 			}
@@ -99,7 +92,6 @@ function apiCall(endpoint, data) {
 
 		})
 		.catch (error => {
-	// Handle any errors that occurred during the request or JSON parsing
 	console.error('Error:', error);
 });
 }
@@ -166,15 +158,12 @@ function getParcels() {
 
 
 function updateCarrierList() {
-	// Get the selected value
 	selected = document.getElementById("carrierDropDown").value
-	// Get the new content
 	fetch("/api/carrier")
 		.then(response => response.json())
 		.then(data => setSelectContent("carrierDropDown", data))
 }
 
-// Populate select list with stuff
 function setSelectContent(selectID, content) {
 	list = document.getElementById(selectID)
 	list.replaceChildren()
