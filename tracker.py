@@ -209,10 +209,13 @@ def update_all(parcel_file="packages.json", config_file="config.json"):
         logging.debug(tracking_data)
         logging.debug("---------------------------")
         if not tracking_data.get("failed"):
+            old_state = packages[package]['shipment_state']
+            new_state = tracking_data['shipment_state']
 
-            if tracking_data["shipment_state"] != packages[package]["shipment_state"]:
-                logging.info(f"Package {package} has changed status from {packages[package]['shipment_state']} to {tracking_data['shipment_state']}")
+            if tracking_data["shipment_state"] != old_state:
+                logging.info(f"Package {package} has changed status from {old_state} to {new_state}")
                 ret_data[package] = tracking_data
+                alert(package, new_state)
 
             else:
                 logging.info(f"Package {package} has not changed status")
@@ -242,12 +245,9 @@ def write_config(data, json_file):
         f.write(json.dumps(data, indent=4))
 
 
-def notify(name, current_state):
+def notify_pb(name, current_state, api_key):
     logging.debug(f"Notify({name}, {current_state}):")
-    pb = Pushbullet(read_config("pushbulletapikey"))
-
-    # logging.INFO(f"Alert {Name}: {CurrentState}")
-    pb.push_note(name, current_state)
+    Pushbullet(api_key).push_note(name, current_state)
 
 
 def get_all_parcels(track=False):
@@ -257,6 +257,34 @@ def get_all_parcels(track=False):
     parcels = read_config("packages.json")
     logging.debug(parcels)
     return parcels
+
+
+def alert(name, state):
+    logging.debug("alert_config()")
+    config = read_config("config.json")
+
+    pb_enabled = config["pushbullet"]["enabled"]
+    pb_api_key = config["pushbullet"]["token"]
+    pb_alert_states = config["pushbullet"]["alert_states"]
+
+    if pb_enabled:
+        logging.debug("Pushbullet enabled")
+        if pb_api_key:
+            logging.debug("Pushbullet api key set")
+
+            if pb_alert_states == "Delivered":
+                logging.debug("Pushbullet alert states set to all")
+                if state == "Delivered":
+                    notify_pb(name, state, pb_api_key)
+
+            else:
+                logging.debug("Pushbullet alert states not set")
+                notify_pb(name, state, pb_api_key)
+
+        else:
+            logging.error("Pushbullet api key not set")
+    else:
+        logging.debug("Pushbullet not enabled")
 
 
 app = Flask(__name__)
