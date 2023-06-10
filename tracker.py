@@ -280,12 +280,12 @@ def get_carrier():
     return jsonify(["posten", "postnord"])
 
 
-@app.route('/api/config', methods=['GET'])
+@app.route('/api/get/config', methods=['GET', "POST"])
 def get_config():
     return jsonify(read_config("config.json"))
 
 
-@app.route('/api/<add_rm>/<name>', methods=['POST', 'GET'])
+@app.route('/api/add_rm/<add_rm>/<name>', methods=['POST', 'GET'])
 def add(name, add_rm):
     logging.debug(f"add({name}, {add_rm}):")
     if add_rm == "add":

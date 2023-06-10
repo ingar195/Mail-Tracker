@@ -3,18 +3,30 @@ console.log("script.js loaded");
 //function run the update function when the page loads
 window.onload = function () {
 	if (window.location.pathname === "/") {
+		console.log("home page loaded");
 		updateCarrierList();
 		getParcels();
 	}
-	else if (window.location.pathname === "/config")
+	else if (window.location.pathname === "/config") {
 		console.log("config page loaded");
+		loadConfig();
+	}
+}
 
-};
+function loadConfig() {
+	endpoint = "/api/get/config";
+	data = apiCall(endpoint, { "config": "config" });
+
+	// Set form values
+	// document.getElementById("pbCheck").value = data.email;
+
+}
+
 function deletePackage(name) {
 	// Get the form data
 	console.log('Deleting package: ', name);
-	endpoint = `http://127.0.0.1:1234/api/rm/${name}`
-	apiCall(endpoint, {})
+	endpoint = `/api/add_rm/rm/${name}`;
+	apiCall(endpoint, {});
 }
 
 function handleKeyDown(event) {
@@ -31,7 +43,7 @@ function addPackage() {
 	const parcelName = (document.getElementById('parcelName')).value;
 
 	console.log('Adding package: ', parcelName, trackingNumber, carrier);
-	endpoint = `http://127.0.0.1:1234/api/add/${parcelName}`
+	endpoint = `/api/add_rm/add/${parcelName}`
 	data = {
 		carrier: carrier,
 		tracking_number: trackingNumber
@@ -55,12 +67,28 @@ function apiCall(endpoint, data) {
 		})
 		.then(data => {
 			// Process the JSON data
-			updatePackage(data);
+			console.log('Data:', data);
+			if (window.location.pathname === "/") {
+				updatePackage(data);
+			} else if (window.location.pathname === "/config") {
+				for (const [name, packageData] of Object.entries(data)) {
+					console.log(name, packageData);
+					if (name === "pushbullet") {
+						document.getElementById("pbCheck").checked = packageData.enabled;
+						document.getElementById("pbApiKey").value = packageData.token;
+						console.log("pbAlertsDropDown", packageData.alert_states);
+						setSelectContent("pbAlertsDropDown", packageData.alert_states)
+					}
+				}
+
+			}
+
+
 		})
-		.catch(error => {
-			// Handle any errors that occurred during the request or JSON parsing
-			console.error('Error:', error);
-		});
+		.catch (error => {
+	// Handle any errors that occurred during the request or JSON parsing
+	console.error('Error:', error);
+});
 }
 
 function updatePackage(data) {
@@ -116,7 +144,7 @@ function updatePackage(data) {
 
 function getParcels() {
 	console.log('Fetching packages...');
-	fetch('http://127.0.0.1:1234/api/parcels/all')
+	fetch('/api/parcels/all')
 		.then(response => response.json())
 		.then(data => {
 			updatePackage(data);
