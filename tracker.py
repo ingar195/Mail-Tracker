@@ -258,7 +258,6 @@ def get_all_parcels(track=False):
     logging.debug(parcels)
     return parcels
 
-
 def alert(name, state):
     logging.debug("alert_config()")
     config = read_config("config.json")
@@ -398,6 +397,8 @@ if __name__ == "__main__":
             logging.StreamHandler()
         ])
 
-    app.run(host='0.0.0.0', port=web_port, debug=True)
-
-    # track(parcel_file, config_file)
+    app.run(
+        host='0.0.0.0', 
+        port=web_port, 
+        debug=False
+    )
