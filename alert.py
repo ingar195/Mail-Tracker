@@ -8,18 +8,17 @@ if __name__ == '__main__':
     datefmt='%d-%m-%Y:%H:%M:%S',
     level=logging.DEBUG,
     handlers=[
-        logging.FileHandler("log.log"),
+        logging.FileHandler("files/alert.log"),
         logging.StreamHandler()
     ])
     
     while True:
         tracker.update_all()
         logging.debug("Updated all packages")
-        conf = tracker.read_config("config.json")
+        conf = tracker.read_config("files/config.json")
         if "config" in conf:
             interval = conf["config"].get("interval")
             if not interval:
                 interval = 60
             time.sleep(interval)
             
-        
