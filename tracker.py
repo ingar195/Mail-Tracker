@@ -5,6 +5,7 @@ import requests
 import argparse
 import logging
 import json
+import os
 
 
 def get_data(url):
@@ -107,19 +108,21 @@ def postnord(tracking_number):
 
     json_data = div_app.get("data-page")
     json_data = json.loads(div_app.get("data-page"))
+    write_file("postnord.json", json_data)
 
     print("---------------------------")
     logging.debug(json_data)
     if json_data["component"] != "Errors/ShipmentNotFound":
-
         eta = "Not supported"
 
         shipment_state = json_data["props"]["shipment"]["status"]["text"]
         last_update = json_data["props"]["shipment"]["parcels"][0]["events"][0]["date_time"]
         location = json_data["props"]["shipment"]["parcels"][0]["events"][0]["location_name"]
 
-        if shipment_state == "Varene dine har blitt levert":
+        delivered_state = ["Pakken din er levert", "Varene dine har blitt levert"]
+        if shipment_state in delivered_state:
             eta = "Delivered"
+            location = json_data["props"]["shipment"]["consignee"]["postal_area"]
         date = "Not supported"
         time = "Not supported"
 
@@ -388,6 +391,17 @@ if __name__ == "__main__":
     config_file = args.config
     web_port = args.port
 
+    if not os.path.exists(parcel_file):
+        logging.warning(f"Parcel file {parcel_file} not found")
+        content = {}
+        write_config(content, parcel_file)
+    if not os.path.exists(config_file):
+        content = {
+            "config": {
+                    "interval": 500
+                }
+            }
+        write_config(content, config_file)
     logging.basicConfig(
         format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
         datefmt='%d-%m-%Y:%H:%M:%S',
