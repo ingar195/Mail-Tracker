@@ -395,6 +395,7 @@ if __name__ == "__main__":
         logging.warning(f"Parcel file {parcel_file} not found")
         content = {}
         write_config(content, parcel_file)
+
     if not os.path.exists(config_file):
         content = {
             "config": {
@@ -402,6 +403,7 @@ if __name__ == "__main__":
                 }
             }
         write_config(content, config_file)
+        
     logging.basicConfig(
         format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
         datefmt='%d-%m-%Y:%H:%M:%S',
