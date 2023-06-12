@@ -1,1 +1,4 @@
+beautifulsoup4
 pushbullet.py
+gunicorn
+flask

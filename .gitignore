@@ -2,3 +2,5 @@
 *.log
 a.*
 .vscode
+__*
+test-files

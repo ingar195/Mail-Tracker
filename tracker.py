@@ -5,6 +5,7 @@ import requests
 import argparse
 import logging
 import json
+import os
 
 
 def get_data(url):
@@ -34,7 +35,7 @@ def posten(tracking_number="70730259304981356", lang="en"):
     data = get_data(f"https://sporing.bring.no/tracking/api/fetch?query={tracking_number}&lang={lang}")
     logging.debug(data)
     logging.debug("---------------------------")
-    if "error" not in data["consignmentSet"][0]:
+    if "errorId" not in data:
 
         package_set = data["consignmentSet"][0]["packageSet"][0]
         eta = package_set["dateOfEstimatedDelivery"]
@@ -107,19 +108,21 @@ def postnord(tracking_number):
 
     json_data = div_app.get("data-page")
     json_data = json.loads(div_app.get("data-page"))
+    write_file("postnord.json", json_data)
 
     print("---------------------------")
     logging.debug(json_data)
     if json_data["component"] != "Errors/ShipmentNotFound":
-
         eta = "Not supported"
 
         shipment_state = json_data["props"]["shipment"]["status"]["text"]
         last_update = json_data["props"]["shipment"]["parcels"][0]["events"][0]["date_time"]
         location = json_data["props"]["shipment"]["parcels"][0]["events"][0]["location_name"]
 
-        if shipment_state == "Varene dine har blitt levert":
+        delivered_state = ["Pakken din er levert", "Varene dine har blitt levert"]
+        if shipment_state in delivered_state:
             eta = "Delivered"
+            location = json_data["props"]["shipment"]["consignee"]["postal_area"]
         date = "Not supported"
         time = "Not supported"
 
@@ -175,7 +178,7 @@ def track(tracking_number, carrier=None):
     return tmp_json
 
 
-def update_all(parcel_file="packages.json", config_file="config.json"):
+def update_all(parcel_file="files/packages.json", config_file="files/config.json"):
 
     packages = read_config(parcel_file)
 
@@ -223,7 +226,7 @@ def update_all(parcel_file="packages.json", config_file="config.json"):
             tracking_data["carrier"] = carrier
             packages[package] = tracking_data
             logging.debug(json.dumps(packages, indent=4))
-            write_config(packages, "packages.json")
+            write_config(packages, "files/packages.json")
 
         else:
             logging.error(f"Package {package} not found")
@@ -254,14 +257,13 @@ def get_all_parcels(track=False):
     logging.debug("get_all_parcels()")
     if track:
         update_all()
-    parcels = read_config("packages.json")
+    parcels = read_config("files/packages.json")
     logging.debug(parcels)
     return parcels
 
-
 def alert(name, state):
     logging.debug("alert_config()")
-    config = read_config("config.json")
+    config = read_config("files/config.json")
 
     pb_enabled = config["pushbullet"]["enabled"]
     pb_api_key = config["pushbullet"]["token"]
@@ -310,7 +312,7 @@ def get_carrier():
 
 @app.route('/api/config/get', methods=['GET', "POST"])
 def config_get():
-    return jsonify(read_config("config.json"))
+    return jsonify(read_config("files/config.json"))
 
 
 @app.route('/api/config/set', methods=['GET', "POST"])
@@ -318,7 +320,7 @@ def config_set():
     data = request.get_json()
     cfg = {}
     try:
-        cfg = read_config("config.json")
+        cfg = read_config("files/config.json")
     except FileNotFoundError:
         logging.warning("Config file not found")
 
@@ -326,7 +328,7 @@ def config_set():
         logging.debug(f"Key: {key}")
         logging.debug(f"Value: {data[key]}")
         cfg[key] = data[key]
-    write_config(data, "config.json")
+    write_config(data, "files/config.json")
     return jsonify("data")
 
 
@@ -355,13 +357,13 @@ def add(name, add_rm):
             message = "Package Failed"
             parcels[name] = {"tracking_number": data["tracking_number"], "shipment_state": "No results"}
 
-        write_config(parcels, "packages.json")
+        write_config(parcels, "files/packages.json")
         return jsonify(parcels)
 
     elif add_rm == "rm":
         parcels = get_all_parcels()
         parcels.pop(name)
-        write_config(parcels, "packages.json")
+        write_config(parcels, "files/packages.json")
         return jsonify(parcels)
 
 
@@ -378,8 +380,8 @@ def frontend_config():
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Track packages")
-    parser.add_argument("-c", "--config", help="config file", default="config.json", required=False)
-    parser.add_argument("-pa", "--parcel", help="parcel file", default="packages.json", required=False)
+    parser.add_argument("-c", "--config", help="config file", default="files/config.json", required=False)
+    parser.add_argument("-pa", "--parcel", help="parcel file", default="files/packages.json", required=False)
     parser.add_argument("-l", "--log", help="log file", default="Tracker.log", required=False)
     parser.add_argument("-p", "--port", help="port", default="1234", required=False)
     args = parser.parse_args()
@@ -388,6 +390,19 @@ if __name__ == "__main__":
     parcel_file = args.parcel
     config_file = args.config
     web_port = args.port
+
+    if not os.path.exists(parcel_file):
+        logging.warning(f"Parcel file {parcel_file} not found")
+        content = {}
+        write_config(content, parcel_file)
+
+    if not os.path.exists(config_file):
+        content = {
+            "config": {
+                    "interval": 500
+                }
+            }
+        write_config(content, config_file)
 
     logging.basicConfig(
         format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -398,6 +413,8 @@ if __name__ == "__main__":
             logging.StreamHandler()
         ])
 
-    app.run(host='0.0.0.0', port=web_port, debug=True)
-
-    # track(parcel_file, config_file)
+    app.run(
+        host='0.0.0.0', 
+        port=web_port, 
+        debug=False
+    )

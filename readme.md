@@ -29,7 +29,5 @@ To generate a API key use this [link](https://www.pushbullet.com/#settings/accou
 ## Plans:
 - Alert's
     - Slack
-    - Pushbullet
     - Discord
-- Create a docker image 
 - Auto reload when new data is available 
