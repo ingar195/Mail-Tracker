@@ -35,7 +35,7 @@ def posten(tracking_number="70730259304981356", lang="en"):
     data = get_data(f"https://sporing.bring.no/tracking/api/fetch?query={tracking_number}&lang={lang}")
     logging.debug(data)
     logging.debug("---------------------------")
-    if "error" not in data["consignmentSet"][0]:
+    if "errorId" not in data:
 
         package_set = data["consignmentSet"][0]["packageSet"][0]
         eta = package_set["dateOfEstimatedDelivery"]
@@ -403,7 +403,7 @@ if __name__ == "__main__":
                 }
             }
         write_config(content, config_file)
-        
+
     logging.basicConfig(
         format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
         datefmt='%d-%m-%Y:%H:%M:%S',
